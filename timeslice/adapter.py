@@ -1,13 +1,18 @@
-"""Demo adapter for ODIN control workshop
+"""Demo adapter for ODIN control Timeslice
 
 This class implements a simple adapter used for demonstration purposes in a
 
-Tim Nicholls, STFC Application Engineering
+Cat Carrigan, STFC Application Engineering
 """
 import logging
 import tornado
 import time
+import os
+from os import path
 from concurrent import futures
+import smtplib
+import email
+import ssl
 
 from tornado.ioloop import IOLoop
 from tornado.concurrent import run_on_executor
@@ -17,8 +22,13 @@ from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types,
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin._version import get_versions
 
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
-class WorkshopAdapter(ApiAdapter):
+
+class TimesliceAdapter(ApiAdapter):
     """System info adapter class for the ODIN server.
 
     This adapter provides ODIN clients with information about the server and the system that it is
@@ -26,22 +36,19 @@ class WorkshopAdapter(ApiAdapter):
     """
 
     def __init__(self, **kwargs):
-        """Initialize the WorkshopAdapter object.
+        """Initialize the TimesliceAdapter object.
 
-        This constructor initializes the WorkshopAdapter object.
+        This constructor initializes the TimesliceAdapter object.
 
         :param kwargs: keyword arguments specifying options
         """
         # Intialise superclass
-        super(WorkshopAdapter, self).__init__(**kwargs)
+        super(TimesliceAdapter, self).__init__(**kwargs)
 
-        # Parse options
-        background_task_enable = bool(self.options.get('background_task_enable', False))
-        background_task_interval = float(self.options.get('background_task_interval', 1.0))
-        
-        self.workshop = Workshop(background_task_enable, background_task_interval)
+        rendered_files = (self.options.get('rendered_files'))
+        self.timeslice = Timeslice (rendered_files)
 
-        logging.debug('WorkshopAdapter loaded')
+        logging.debug('TimesliceAdapter loaded')
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
@@ -54,7 +61,7 @@ class WorkshopAdapter(ApiAdapter):
         :return: an ApiAdapterResponse object containing the appropriate response
         """
         try:
-            response = self.workshop.get(path)
+            response = self.timeslice.get(path)
             status_code = 200
         except ParameterTreeError as e:
             response = {'error': str(e)}
@@ -81,10 +88,10 @@ class WorkshopAdapter(ApiAdapter):
 
         try:
             data = json_decode(request.body)
-            self.workshop.set(path, data)
-            response = self.workshop.get(path)
+            self.timeslice.set(path, data)
+            response = self.timeslice.get(path)
             status_code = 200
-        except WorkshopError as e:
+        except TimesliceError as e:
             response = {'error': str(e)}
             status_code = 400
         except (TypeError, ValueError) as e:
@@ -105,7 +112,7 @@ class WorkshopAdapter(ApiAdapter):
         :param request: HTTP request object
         :return: an ApiAdapterResponse object containing the appropriate response
         """
-        response = 'WorkshopAdapter: DELETE on path {}'.format(path)
+        response = 'TimesliceAdapter: DELETE on path {}'.format(path)
         status_code = 200
 
         logging.debug(response)
@@ -113,27 +120,28 @@ class WorkshopAdapter(ApiAdapter):
         return ApiAdapterResponse(response, status_code=status_code)
 
 
-class WorkshopError(Exception):
+class TimesliceError(Exception):
     """Simple exception class for PSCUData to wrap lower-level exceptions."""
 
     pass
 
 
-class Workshop():
-    """Workshop - class that extracts and stores information about system-level parameters."""
+class Timeslice():
+    """Timeslice - class that extracts and stores information about system-level parameters."""
 
     # Thread executor used for background tasks
     executor = futures.ThreadPoolExecutor(max_workers=1)
 
-    def __init__(self, background_task_enable, background_task_interval):
-        """Initialise the Workshop object.
+    def __init__(self, rendered_files):
+        """Initialise the Timeslice object.
 
-        This constructor initlialises the Workshop object, building a parameter tree and
+        This constructor initlialises the Timeslice object, building a parameter tree and
         launching a background task if enabled
         """
-        # Save arguments
-        self.background_task_enable = background_task_enable
-        self.background_task_interval = background_task_interval
+        self.rendered_files = rendered_files
+        self.access_codes = []
+        self.files = []
+        self.email_address = ""
 
         # Store initialisation time
         self.init_time = time.time()
@@ -141,30 +149,22 @@ class Workshop():
         # Get package version information
         version_info = get_versions()
 
-        # Set the background task counter to zero
-        self.background_task_counter = 0
-
-        # Build a parameter tree for the background task
-        bg_task = ParameterTree({
-            'count': (lambda: self.background_task_counter, None),
-            'enable': (lambda: self.background_task_enable, self.set_task_enable),
-            'interval': (lambda: self.background_task_interval, self.set_task_interval),
-        })
-
         # Store all information in a parameter tree
         self.param_tree = ParameterTree({
             'odin_version': version_info['version'],
             'tornado_version': tornado.version,
             'server_uptime': (self.get_server_uptime, None),
-            'background_task': bg_task 
-        })
+            'access_codes': (lambda: self.access_codes, None),
+            'add_access_code': ("", self.add_task_access_code),
+            'rendered_files': (lambda: self.rendered_files,None),
+            'clear_access_codes' : (False, self.clear_access_codes),
+            'email_address' : (lambda: self.email_address, None),
+            'add_email_address' : ("", self.add_email_address),
+            'send_email_new' : (False, self.send_email_new),
+            'files': (lambda: self.files, None),
 
-        # Launch the background task if enabled in options
-        if self.background_task_enable:
-            logging.debug(
-                "Launching background task with interval %.2f secs", background_task_interval
-            )
-            self.background_task()
+        })     
+
 
     def get_server_uptime(self):
         """Get the uptime for the ODIN server.
@@ -176,7 +176,7 @@ class Workshop():
     def get(self, path):
         """Get the parameter tree.
 
-        This method returns the parameter tree for use by clients via the Workshop adapter.
+        This method returns the parameter tree for use by clients via the Timeslice adapter.
 
         :param path: path to retrieve from tree
         """
@@ -186,7 +186,7 @@ class Workshop():
         """Set parameters in the parameter tree.
 
         This method simply wraps underlying ParameterTree method so that an exceptions can be
-        re-raised with an appropriate WorkshopError.
+        re-raised with an appropriate TimesliceError.
 
         :param path: path of parameter tree to set values for
         :param data: dictionary of new data values to set in the parameter tree
@@ -194,40 +194,89 @@ class Workshop():
         try:
             self.param_tree.set(path, data)
         except ParameterTreeError as e:
-            raise WorkshopError(e)
+            raise TimesliceError(e)
 
-    def set_task_interval(self, interval):
-
-        logging.debug("Setting background task interval to %f", interval)
-        self.background_task_interval = float(interval)
+    def add_task_access_code(self, access_code):
         
-    def set_task_enable(self, enable):
 
-        logging.debug("Setting background task enable to %s", enable)
+        if access_code in self.access_codes: 
+            raise TimesliceError("This code is already stored")
+        
+        file_path = os.path.join(self.rendered_files, access_code + '.mp4')
+        logging.debug("Testing if file {} exists".format(file_path))
+        if os.path.isfile(os.path.join(file_path)):
+            logging.debug("adding access code %s", access_code)
 
-        current_enable = self.background_task_enable
-        self.background_task_enable = bool(enable)
-
-        if not current_enable:
-            logging.debug("Restarting background task")
-            self.background_task()
-
-
-    @run_on_executor
-    def background_task(self):
-        """Run the adapter background task.
-
-        This simply increments the background counter and sleeps for the specified interval,
-        before adding itself as a callback to the IOLoop instance to be called again.
-
-        """
-        if self.background_task_counter < 10 or self.background_task_counter % 20 == 0:
-            logging.debug("Background task running, count = %d", self.background_task_counter)
-
-        self.background_task_counter += 1
-        time.sleep(self.background_task_interval)
-
-        if self.background_task_enable:
-            IOLoop.instance().add_callback(self.background_task)
+            self.access_codes.append(access_code)
+            self.files.append(file_path)
+            logging.debug(self.access_codes)
+            logging.debug(self.files)
         else:
-            logging.debug("Background task no longer enabled, stopping")
+            raise TimesliceError("This access code does not match any stored videos, please try again")
+    
+    
+    def clear_access_codes(self, clear):
+        
+        logging.debug("Setting list clear to %s", clear)
+
+        self.access_codes = []
+        self.files = []
+
+        logging.debug(self.access_codes)
+    
+    def add_email_address(self, email_address):
+
+        self.email_address = email_address
+
+        logging.debug("Email address recieved: %s", email_address)
+
+    
+    def send_email_new(self, send):
+
+        subject = "An email with attachment from Python"
+        body = """To: <{0}>
+Subject: SMTP test
+
+Hello,
+
+the entered access codes are:
+{1}
+
+thanks,
+Cat
+""".format(self.email_address, self.access_codes)
+        sender_email = "Catherine Carrigan <catherine.carrigan@stfc.ac.uk>"
+        receiver_email = '{0}'.format(self.email_address)
+
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = receiver_email
+        message["Subject"] = subject
+
+        message.attach(MIMEText(body, "plain"))
+        files_list = self.access_codes
+        logging.debug(files_list)
+        
+        for a_file in files_list:
+            a_file = os.path.join(self.rendered_files, a_file + '.mp4')
+            attachment = open(a_file, "rb")
+            filename = os.path.basename(a_file)
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+
+            encoders.encode_base64(part)
+
+            part.add_header(
+                "Content-Disposition",
+                f"attachment; filename= {filename}",
+            )
+
+            message.attach(part)
+
+        try:
+            smtp_obj = smtplib.SMTP('outbox.rl.ac.uk')
+            smtp_obj.sendmail(sender_email, receiver_email, message.as_string())
+            logging.debug("Yay, we sent mail")
+        except smtplib.SMTPException as error:
+            logging.debug("Boo, emailing failed: {}".format(str(error)))
+    

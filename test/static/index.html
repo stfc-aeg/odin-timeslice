@@ -44,6 +44,28 @@
           <p>Registered API adapters:&nbsp;<span id="api-adapters">&nbsp;</span></p>
           <p>Workshop background task count:&nbsp;<span id="task-count">&nbsp;</span></p>
           <p>Enable background task:&nbsp;<input type="checkbox" id="task-enable" onclick="change_enable()"/></p>
+          <br>
+          <input type="text" id="email_input" value="" autocomplete="off">
+          <input type="button" value="Add email address" onclick="check_email_validation()">
+          <br><br>
+          <p id="email"> </p>
+          <br>          
+          <br>
+          <input type="text" id="input_test" value="" autocomplete="off">
+          <input type="button" value="submit" onclick="check_code_validation()">
+          <br>
+          <br>
+         <p id="displayer"></p>
+         <p id="validity"></p>
+         <br>
+         <br>
+         <p> your list of codes: </p>
+         <p id="codes"></p>
+         <br>
+         <input type="button" value="Clear list" onclick="clear_list()">
+         <br>
+         <br>
+         <input type="button" value="send test email" onclick="send_email_test()" disabled id="email_button">
         </div>
 
       </div><!-- /.container -->
