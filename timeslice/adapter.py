@@ -197,7 +197,17 @@ class Timeslice():
             raise TimesliceError(e)
 
     def add_task_access_code(self, access_code):
-        
+        """Validate and store entered access codes to be sent in an email
+
+        When an access code is entered, first the code checks that the entered access code 
+        isn't already in the access codes list in order to avoid duplication of attachments
+        in the email.
+        If the code isn't a duplicate the system then checks that it relates to an existing
+        file. If the file exists then the code is added to the list of access codes being stored
+        and the files list recieves both the access code and the file path in order to attach 
+        the mp4 file to the email.
+        Otherwise the system sends out an error message
+        """
 
         if access_code in self.access_codes: 
             raise TimesliceError("This code is already stored")
@@ -216,7 +226,9 @@ class Timeslice():
     
     
     def clear_access_codes(self, clear):
-        
+        """ This empties both the access codes list and the files list used for attaching mp4
+        files.
+        """
         logging.debug("Setting list clear to %s", clear)
 
         self.access_codes = []
@@ -225,25 +237,30 @@ class Timeslice():
         logging.debug(self.access_codes)
     
     def add_email_address(self, email_address):
-
+        """This sets the email address for videos to be sent to
+        """
         self.email_address = email_address
 
         logging.debug("Email address recieved: %s", email_address)
 
     
     def send_email_new(self, send):
-
-        subject = "An email with attachment from Python"
+        """This is the code that actually collects the various pieces of entered information
+        and uses them to send an email out to the timeslice user
+        """
+        subject = "Timeslice videos"
         body = """To: <{0}>
 Subject: SMTP test
 
 Hello,
 
-the entered access codes are:
+Here are the access codes you entered during your visit:
 {1}
 
-thanks,
-Cat
+Their corresponding timeslice videos are attached to this email.
+
+Please enjoy,
+STFC
 """.format(self.email_address, self.access_codes)
         sender_email = "Catherine Carrigan <catherine.carrigan@stfc.ac.uk>"
         receiver_email = '{0}'.format(self.email_address)
