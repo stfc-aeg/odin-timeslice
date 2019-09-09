@@ -1,8 +1,9 @@
 api_version = '0.1';
 
 $( document ).ready(function() {
-    poll_update();
-    show_code_list()
+    show_code_list();
+    clear_list();
+    clear_email();
 });
 
 function handle_form_test(){
@@ -54,6 +55,20 @@ function show_code_list(){
         var code_list = access_code_list.toString();
         $('#codes').html(code_list)
     });
+}
+
+function clear_email(){
+    $.ajax({
+        type: "PUT",
+        url: '/api/' + api_version + '/timeslice',
+        contentType: "application/json",
+        data: JSON.stringify({'clear_email': true})
+    })
+
+    .done( function(){
+        show_email_address();
+        console.log("Email address has been cleared")
+    })
 }
 
 function clear_list(){

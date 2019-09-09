@@ -158,6 +158,7 @@ class Timeslice():
             'add_access_code': ("", self.add_task_access_code),
             'rendered_files': (lambda: self.rendered_files,None),
             'clear_access_codes' : (False, self.clear_access_codes),
+            'clear_email' : (False, self.clear_email),
             'email_address' : (lambda: self.email_address, None),
             'add_email_address' : ("", self.add_email_address),
             'send_email_new' : (False, self.send_email_new),
@@ -235,6 +236,12 @@ class Timeslice():
         self.files = []
 
         logging.debug(self.access_codes)
+
+    def clear_email(self, clear):
+        """ This empties the stored email address when the page loads"""
+        self.email_address = None
+        logging.debug("clearing email: %s",clear)
+
     
     def add_email_address(self, email_address):
         """This sets the email address for videos to be sent to
