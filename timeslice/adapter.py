@@ -256,7 +256,7 @@ class Timeslice():
         and uses them to send an email out to the timeslice user
         """
         subject = "Timeslice videos"
-        body = """To: <{0}>
+        body = """To:<{0}>
 Subject: SMTP test
 
 Hello,
@@ -281,10 +281,10 @@ STFC
         files_list = self.access_codes
         logging.debug(files_list)
         
-        for a_file in files_list:
+        for file_number, a_file in enumerate(files_list, start=1):
             a_file = os.path.join(self.rendered_files, a_file + '.mp4')
             attachment = open(a_file, "rb")
-            filename = os.path.basename(a_file)
+            filename = 'STFC-Timeslice-video-{}'.format(file_number)+'.mp4'
             part = MIMEBase("application", "octet-stream")
             part.set_payload(attachment.read())
 

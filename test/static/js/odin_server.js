@@ -126,8 +126,18 @@ function send_email_test(){
         url: '/api/' + api_version + '/timeslice',
         contentType: "application/json",
         data: JSON.stringify({'send_email_new': true}) 
-    });
+    })
+
+    .done(function(){
+        console.log("clearing page");
+        refresh_page(3000);
+    })
 }
+
+function refresh_page(timeoutPeriod){
+	setTimeout("location.reload(true);",timeoutPeriod);
+}
+
 function enable_email(){
     document.getElementById("email_button").disabled = false;
 }
