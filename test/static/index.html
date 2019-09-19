@@ -8,7 +8,7 @@
     <title>ODIN Server</title>
 
     <!-- Bootstrap -->
-    <link href="js/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="js/bootstrap-4.3.1-dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/odin-server.css" rel="stylesheet">
 
   </head>
@@ -38,12 +38,30 @@
       <div class="container">
 
         <div class="odin-server">
-          <h1>ODIN Workshop</h1>
-          <p class="lead">Welcome to the ODIN workshop!</p>
-          <p>API version is:&nbsp;<span id="api-version">&nbsp;</span></p>
-          <p>Registered API adapters:&nbsp;<span id="api-adapters">&nbsp;</span></p>
-          <p>Workshop background task count:&nbsp;<span id="task-count">&nbsp;</span></p>
-          <p>Enable background task:&nbsp;<input type="checkbox" id="task-enable" onclick="change_enable()"/></p>
+          <h1>ODIN Timeslice</h1>
+          <br>
+          <br>
+          <input type="text" id="email_input" value="" autocomplete="off">
+          <input type="button" value="Add email address" onclick="check_email_validation()">
+          <br><br>
+          <p id="email"> </p>
+          <br>          
+          <br>
+          <input type="text" id="input_test" value="" autocomplete="off">
+          <input type="button" value="submit" onclick="check_code_validation()">
+          <br>
+          <br>
+         <p id="displayer"></p>
+         <p id="validity"></p>
+         <br>
+         <br>
+         <p> your list of codes: </p>
+         <p id="codes"></p>
+         <br>
+         <input type="button" value="Clear list" onclick="clear_list()">
+         <br>
+         <br>
+         <input type="button" value="send test email" onclick="send_email_test()" disabled id="email_button">
         </div>
 
       </div><!-- /.container -->
@@ -51,7 +69,7 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/jquery-2.2.3.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
     <script src="js/odin_server.js"></script>
   </body>
 </html>

@@ -1,50 +1,143 @@
 api_version = '0.1';
 
 $( document ).ready(function() {
-
-    update_api_version();
-    update_api_adapters();
-    poll_update()
+    show_code_list();
+    clear_list();
+    clear_email();
 });
 
-function poll_update() {
-    update_background_task();
-    setTimeout(poll_update, 500);   
+function handle_form_test(){
+
+    var task_access_code = $('#input_test').val();
+    $('#displayer').html(task_access_code);
+    $('#displayer').css('color', 'green');
+    $('#validity').html("your code is valid");
+
 }
 
-function update_api_version() {
+function bad_code_response(err_msg){
+    var input_code = $('#input_test').val();
+    $('#displayer').html(input_code).val();
+    $('#displayer').css('color', 'red');
+    $('#validity').html(err_msg);
+}
 
-    $.getJSON('/api', function(response) {
-        $('#api-version').html(response.api);
-        api_version = response.api;
+function check_code_validation() {
+    var input_code = $('#input_test').val();
+    if (/^([A-N)]|[P-Z]|[1-9]){7}$/.test(input_code))
+    {
+        $.ajax({
+            type: "PUT",
+            url: '/api/' + api_version + '/timeslice',
+            contentType: "application/json",
+            data: JSON.stringify({'add_access_code': input_code})
+        })
+        .done(function(json){
+            console.log("calling handle_form_test")
+            handle_form_test();
+            show_code_list();
+            enable_email();
+        })
+        .fail(function( status, errorThrown ) {
+            console.log(status.responseJSON.error);
+            bad_code_response(status.responseJSON.error)
+        })
+        .always(
+            console.log("Access code check has been completed"))
+    } else {
+    alert("The code you have entered is invalid");
+    }
+}
+
+function show_code_list(){
+    $.getJSON('/api/' + api_version + '/timeslice/access_codes', function(response) {
+        var access_code_list = response.access_codes
+        var code_list = access_code_list.toString();
+        $('#codes').html(code_list)
     });
 }
 
-function update_api_adapters() {
-
-    $.getJSON('/api/' + api_version + '/adapters/', function(response) {
-        adapter_list = response.adapters.join(", ");
-        $('#api-adapters').html(adapter_list);
-    });
-}
-
-function update_background_task() {
-
-    $.getJSON('/api/' + api_version + '/workshop/background_task', function(response) {
-        var task_count = response.background_task.count;
-        var task_enabled = response.background_task.enable;
-        $('#task-count').html(task_count);
-        $('#task-enable').prop('checked', task_enabled);
-    });
-}
-
-function change_enable() {
-    var enabled = $('#task-enable').prop('checked');
-    console.log("Enabled changed to " + (enabled ? "true" : "false"));
+function clear_email(){
     $.ajax({
         type: "PUT",
-        url: '/api/' + api_version + '/workshop/background_task',
+        url: '/api/' + api_version + '/timeslice',
         contentType: "application/json",
-        data: JSON.stringify({'enable': enabled})
+        data: JSON.stringify({'clear_email': true})
+    })
+
+    .done( function(){
+        show_email_address();
+        console.log("Email address has been cleared")
+    })
+}
+
+function clear_list(){
+    $.ajax({
+        type: "PUT",
+        url: '/api/' + api_version + '/timeslice',
+        contentType: "application/json",
+        data: JSON.stringify({'clear_access_codes': true})
+    })
+
+    .done( function(){
+        show_code_list();
+        console.log("List has been cleared")
+        document.getElementById("email_button").disabled = true;
+    })
+}
+
+function check_email_validation(){
+    var email_input = $('#email_input').val();
+    if (/^(\S+@\S+\.\S+)$/.test(email_input))
+    {
+        console.log("valid email address entered");
+
+        $.ajax({
+            type: "PUT",
+            url: '/api/' + api_version + '/timeslice',
+            contentType: "application/json",
+            data: JSON.stringify({'add_email_address': email_input}) 
+        })
+
+        .done(function(json){
+            console.log("calling show_email_address");
+            show_email_address();
+        })
+    }
+};
+
+function show_email_address(){
+
+    console.log("running show_email_address");
+
+    $.getJSON('/api/' + api_version + '/timeslice/email_address', function(response) {
+        var email_displayer = response.email_address;
+        console.log(email_displayer);
+        $('#email').html(email_displayer);
     });
+}
+
+function send_email_test(){
+
+    console.log("sending test email");
+
+    $.ajax({
+        type: "PUT",
+        url: '/api/' + api_version + '/timeslice',
+        contentType: "application/json",
+        data: JSON.stringify({'send_email_new': true}) 
+    })
+
+    .done(function(){
+        console.log("clearing page");
+        refresh_page(3000);
+    })
+}
+
+function refresh_page(timeoutPeriod){
+	setTimeout("location.reload(true);",timeoutPeriod);
+}
+
+function enable_email(){
+    document.getElementById("email_button").disabled = false;
 }
