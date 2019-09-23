@@ -14,57 +14,61 @@
   </head>
   <body>
 
-      <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">ODIN</a>
-          </div>
-          <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </nav>
+    <div class="container">
 
-      <div class="container">
-
-        <div class="odin-server">
-          <h1>ODIN Timeslice</h1>
-          <br>
-          <br>
-          <input type="text" id="email_input" value="" autocomplete="off">
-          <input type="button" value="Add email address" onclick="check_email_validation()">
-          <br><br>
+      <div class="odin-server">
+        <br><br>
+        <h1>ODIN Timeslice</h1>
+        <br>
+        <br>
+        <div id="email-view" class="d-none">
+          <!-- div1-Email enter -->
+          <p>Enter your email address here:</p>
+          <input type="text" size="25" id="email_input" value="" autocomplete="off">
+          <input class="button" type="button" value="Add email address" onclick="check_email_validation()">
+          <p id="email_validity"></p>
+          <p>Your email address: </p>
           <p id="email"> </p>
-          <br>          
           <br>
+          <input class="button" type="button" value="Next" onclick="codes_page()" disabled id="email_next">
+          <!-- end div1 -->
+        </div>  
+        <div id="codes-view" class="d-none"> 
+          <!-- div2 access codes -->
           <input type="text" id="input_test" value="" autocomplete="off">
-          <input type="button" value="submit" onclick="check_code_validation()">
+          <input class="button" type="button" value="Add code" onclick="check_code_validation()">
           <br>
           <br>
-         <p id="displayer"></p>
-         <p id="validity"></p>
-         <br>
-         <br>
-         <p> your list of codes: </p>
-         <p id="codes"></p>
-         <br>
-         <input type="button" value="Clear list" onclick="clear_list()">
-         <br>
-         <br>
-         <input type="button" value="send test email" onclick="send_email_test()" disabled id="email_button">
+          <p id="displayer"></p>
+          <p id="validity"></p>
+          <br>
+          <br>
+          <p> your list of codes: </p>
+          <p id="codes"></p>
+          <br>
+          <input class="button" type="button" value="Go back" onclick="start_page()">
+          <input class="button" type="button" value="Clear list" onclick="clear_list()">
+          <input class="button" type="button" value="Next" onclick="send_page()" disabled id="codes_next">
+          <!-- end div2 -->
         </div>
+        <div id="send-email" class="d-none">
+          <!-- div3 send -->
+          <p>your email address:</p>
+          <p id="final_email"> </p>
+          <br>
+          <p> your list of codes: </p>
+          <p id="final_codes"></p>
+          <input class="button" type="button" value="Go back" onclick="codes_page()">
+          <input class="button" type="button" value="Send test email" onclick="send_email_test()" disabled id="email_button">
+          <!-- end div3 -->
+        </div>
+        <div id="final-view" class="d-none">
+          <p>Thank you, your videos have now been successfuly sent.</p>
+          <p>This page will refresh automatically</p>
+        </div>
+      </div>
 
-      </div><!-- /.container -->
+    </div><!-- /.container -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/jquery-2.2.3.min.js"></script>
