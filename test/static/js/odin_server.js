@@ -164,21 +164,23 @@ function refresh_page(timeoutPeriod){
 
 function start_page(){
 
-    $('#email-view').removeClass('d-none');
-    $('#codes-view').addClass('d-none');
-}
-
-function codes_page(){
-
     $('#email-view').addClass('d-none');
     $('#send-email').addClass('d-none');
     $('#codes-view').removeClass('d-none');
 
 }
 
+function email_page(){
+
+    $('#email-view').removeClass('d-none');
+    $('#codes-view').addClass('d-none');
+    $('#send-email').addClass('d-none');
+
+}
+
 function send_page(){
 
-    $('#codes-view').addClass('d-none');
+    $('#email-view').addClass('d-none');
     $('#send-email').removeClass('d-none');
 
 }
@@ -189,6 +191,25 @@ function final_page(){
     $('#send-email').addClass('d-none');
     $('#codes-view').addClass('d-none');
     $('#final-view').removeClass('d-none');
+    countdown();
     refresh_page(5000);
+
+}
+
+function countdown(){
+
+    var counter = 5;
+
+  setInterval(function() {
+    counter--;
+    if (counter >= 0) {
+      span = document.getElementById("count");
+      $('#count').html(counter);
+    }
+
+    if (counter === 0) {
+        clearInterval(counter);
+    }
+  }, 1000);
 
 }

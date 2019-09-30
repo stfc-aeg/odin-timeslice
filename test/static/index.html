@@ -14,29 +14,42 @@
   </head>
   <body>
 
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">
+        <img src="stfc_logo.png" height="33.33px" width="152.66px"> 
+      </a>
+
+      <ul class="navbar-nav">
+          <li>
+              <a href="#about-modal" class="btn btn-secondary" data-toggle="modal">Help</a>
+          </li>
+      </ul>
+    </nav>
+
     <div class="container">
 
       <div class="odin-server">
         <br><br>
-        <h1>ODIN Timeslice</h1>
+        <h1>Enter your codes and email address to recieve your videos.</h1> 
         <br>
         <br>
         <div id="email-view" class="d-none">
           <!-- div1-Email enter -->
           <p>Enter your email address here:</p>
           <input type="text" size="25" id="email_input" value="" autocomplete="off">
-          <input class="button" type="button" value="Add email address" onclick="check_email_validation()">
+          <input class="btn btn-primary" type="button" value="Enter email address" onclick="check_email_validation()">
           <p id="email_validity"></p>
           <p>Your email address: </p>
           <p id="email"> </p>
           <br>
-          <input class="button" type="button" value="Next" onclick="codes_page()" disabled id="email_next">
+          <input class="btn btn-primary" type="button" value="Go back" onclick="start_page()">
+          <input class="btn btn-primary" type="button" value="Next" onclick="send_page()" disabled id="email_next">
           <!-- end div1 -->
         </div>  
         <div id="codes-view" class="d-none"> 
           <!-- div2 access codes -->
           <input type="text" id="input_test" value="" autocomplete="off">
-          <input class="button" type="button" value="Add code" onclick="check_code_validation()">
+          <input class="btn btn-primary" type="button" value="Add code" onclick="check_code_validation()">
           <br>
           <br>
           <p id="displayer"></p>
@@ -46,9 +59,8 @@
           <p> your list of codes: </p>
           <p id="codes"></p>
           <br>
-          <input class="button" type="button" value="Go back" onclick="start_page()">
-          <input class="button" type="button" value="Clear list" onclick="clear_list()">
-          <input class="button" type="button" value="Next" onclick="send_page()" disabled id="codes_next">
+          <input class="btn btn-primary" type="button" value="Clear codes" onclick="clear_list()">
+          <input class="btn btn-primary" type="button" value="Next" onclick="email_page()" disabled id="codes_next">
           <!-- end div2 -->
         </div>
         <div id="send-email" class="d-none">
@@ -58,15 +70,41 @@
           <br>
           <p> your list of codes: </p>
           <p id="final_codes"></p>
-          <input class="button" type="button" value="Go back" onclick="codes_page()">
-          <input class="button" type="button" value="Send test email" onclick="send_email_test()" disabled id="email_button">
+          <input class="btn btn-primary" type="button" value="Go back" onclick="email_page()">
+          <input class="btn btn-primary" type="button" value="Send email" onclick="send_email_test()" disabled id="email_button">
           <!-- end div3 -->
         </div>
         <div id="final-view" class="d-none">
           <p>Thank you, your videos have now been successfuly sent.</p>
-          <p>This page will refresh automatically</p>
+          <p>This page will refresh automatically in:</p>
+          <p><span id="count">5</span> seconds</p>
         </div>
       </div>
+
+      <div class="modal fade" id="about-modal">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3 class="modal-title">How to send your videos</h4>
+              </div>
+              <div class="modal-body">
+                <h4>Access Codes:</h4>
+                <p> On this page simply enter the code/s you were given when you took your video. 
+                  Please note this is case sensitive</p>
+                <h4>Email Address:</h4>
+                  <p>Next you'll need to enter your email address. Only one adress is stored, any 
+                  extra will overwrite the previously entered one.</p>
+                <h4>Final Check: </h4>
+                  <p>Finally you just need to check that everything is correct. If something is wrong
+                  you can always go back and correct it.
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              </div>
+            </div><!-- /.modal-content -->
+          </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
 
     </div><!-- /.container -->
 

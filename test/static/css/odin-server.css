@@ -9,16 +9,3 @@ body {
     padding: 40px 15px;
     text-align: center;
 }
-
-.button{
-    padding: 7px;
-    background-color: #0d9aff;
-    border: none;
-    border-radius: 22px;
-    color:white;
-}
-
-input[type=button]:disabled{
-    background: #dddddd;
-    color: #888888
-}
