@@ -46,7 +46,8 @@ class TimesliceAdapter(ApiAdapter):
         super(TimesliceAdapter, self).__init__(**kwargs)
 
         rendered_files = (self.options.get('rendered_files'))
-        self.timeslice = Timeslice (rendered_files)
+        config_message = (self.options.get('config_message'))
+        self.timeslice = Timeslice(rendered_files,config_message)
 
         logging.debug('TimesliceAdapter loaded')
 
@@ -132,13 +133,14 @@ class Timeslice():
     # Thread executor used for background tasks
     executor = futures.ThreadPoolExecutor(max_workers=1)
 
-    def __init__(self, rendered_files):
+    def __init__(self, rendered_files, config_message,):
         """Initialise the Timeslice object.
 
         This constructor initlialises the Timeslice object, building a parameter tree and
         launching a background task if enabled
         """
         self.rendered_files = rendered_files
+        self.config_message = config_message
         self.access_codes = []
         self.files = []
         self.email_address = ""
@@ -157,6 +159,7 @@ class Timeslice():
             'access_codes': (lambda: self.access_codes, None),
             'add_access_code': ("", self.add_task_access_code),
             'rendered_files': (lambda: self.rendered_files,None),
+            'config_message': (lambda: self.config_message,None),
             'clear_access_codes' : (False, self.clear_access_codes),
             'clear_email' : (False, self.clear_email),
             'email_address' : (lambda: self.email_address, None),
@@ -255,20 +258,11 @@ class Timeslice():
         """This is the code that actually collects the various pieces of entered information
         and uses them to send an email out to the timeslice user
         """
+
+        config_message = self.config_message
+
         subject = "Timeslice videos"
-        body = """To:<{0}>
-Subject: SMTP test
-
-Hello,
-
-Here are the access codes you entered during your visit:
-{1}
-
-Their corresponding timeslice videos are attached to this email.
-
-Please enjoy,
-STFC
-""".format(self.email_address, self.access_codes)
+        body = (config_message).format(self.email_address, self.access_codes)
         sender_email = "Catherine Carrigan <catherine.carrigan@stfc.ac.uk>"
         receiver_email = '{0}'.format(self.email_address)
 

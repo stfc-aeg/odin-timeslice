@@ -1,12 +1,13 @@
 api_version = '0.1';
 
-$( document ).ready(function() {
+$(document).ready(function() {
     show_code_list();
+    start_page();
     clear_list();
     clear_email();
 });
 
-function handle_form_test(){
+function good_code_response(){
 
     var task_access_code = $('#input_test').val();
     $('#displayer').html(task_access_code);
@@ -33,10 +34,12 @@ function check_code_validation() {
             data: JSON.stringify({'add_access_code': input_code})
         })
         .done(function(json){
-            console.log("calling handle_form_test")
-            handle_form_test();
+            console.log("calling good_code_response")
+            good_code_response();
             show_code_list();
-            enable_email();
+            document.getElementById("email_button").disabled = false;
+            document.getElementById("codes_next").disabled = false;
+            document.getElementById('input_test').value = "";
         })
         .fail(function( status, errorThrown ) {
             console.log(status.responseJSON.error);
@@ -54,6 +57,8 @@ function show_code_list(){
         var access_code_list = response.access_codes
         var code_list = access_code_list.toString();
         $('#codes').html(code_list)
+        $('#final_codes').html(code_list)
+
     });
 }
 
@@ -82,7 +87,11 @@ function clear_list(){
     .done( function(){
         show_code_list();
         console.log("List has been cleared")
+        $('#displayer').html("");
+        $('#validity').html("");
         document.getElementById("email_button").disabled = true;
+        document.getElementById("codes_next").disabled = true;
+
     })
 }
 
@@ -102,7 +111,20 @@ function check_email_validation(){
         .done(function(json){
             console.log("calling show_email_address");
             show_email_address();
+            document.getElementById("email_next").disabled = false;
+            $('#email_validity').css('color', 'green');
+            $('#email_validity').html("Email address is valid");
+
         })
+    }
+
+    else
+    {
+        $('#email_validity').css('color', 'red');
+        $('#email_validity').html("Please enter a valid email address");
+        document.getElementById("email_next").disabled = true;
+
+ 
     }
 };
 
@@ -114,6 +136,8 @@ function show_email_address(){
         var email_displayer = response.email_address;
         console.log(email_displayer);
         $('#email').html(email_displayer);
+        $('#final_email').html(email_displayer);
+
     });
 }
 
@@ -130,7 +154,7 @@ function send_email_test(){
 
     .done(function(){
         console.log("clearing page");
-        refresh_page(3000);
+        final_page();
     })
 }
 
@@ -138,6 +162,54 @@ function refresh_page(timeoutPeriod){
 	setTimeout("location.reload(true);",timeoutPeriod);
 }
 
-function enable_email(){
-    document.getElementById("email_button").disabled = false;
+function start_page(){
+
+    $('#email-view').addClass('d-none');
+    $('#send-email').addClass('d-none');
+    $('#codes-view').removeClass('d-none');
+
+}
+
+function email_page(){
+
+    $('#email-view').removeClass('d-none');
+    $('#codes-view').addClass('d-none');
+    $('#send-email').addClass('d-none');
+
+}
+
+function send_page(){
+
+    $('#email-view').addClass('d-none');
+    $('#send-email').removeClass('d-none');
+
+}
+
+function final_page(){
+
+    $('#email-view').addClass('d-none');
+    $('#send-email').addClass('d-none');
+    $('#codes-view').addClass('d-none');
+    $('#final-view').removeClass('d-none');
+    countdown();
+    refresh_page(5000);
+
+}
+
+function countdown(){
+
+    var counter = 5;
+
+  setInterval(function() {
+    counter--;
+    if (counter >= 0) {
+      span = document.getElementById("count");
+      $('#count').html(counter);
+    }
+
+    if (counter === 0) {
+        clearInterval(counter);
+    }
+  }, 1000);
+
 }
