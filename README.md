@@ -4,7 +4,9 @@
 
 ### Create a python 3 virtual environment
 
-```$ mkvirtualenv -p /usr/local/bin/python3 odin-timeslice-3 ```
+```
+$ mkvirtualenv -p /usr/local/bin/python3 odin-timeslice-3 
+```
 
 you need to make sure the virtual environment is activated before running the timeslice system
 
