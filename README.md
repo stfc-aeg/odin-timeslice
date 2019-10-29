@@ -1,5 +1,8 @@
 # Timeslice Email System
 
+This is the web interface used to send the previously rendered and saved timeslice videos to poeple using an email system in which said videos are found and attatched using the access code provided whent he video is saved.
+
+
 ## How to set up
 
 ### Create a python 3 virtual environment
