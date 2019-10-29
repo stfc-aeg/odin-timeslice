@@ -20,14 +20,19 @@ $ cd odin-timeslice
 
 ### Run Setup.py
 ``` 
-$ python setup.py develop
+$ python setup.py install
 ``` 
 
 ## How to run 
 ### ensure the virtual environment is activated 
+In the directory above /develop
+```
+$ workon odin-timeslice-3.6
+```
 ### navigate to the odin-timeslice file
 ```
-cd odin-timeslice
+$ cd develop
+$ cd odin-timeslice
 ```
 ### run the timeslice system
 ```
