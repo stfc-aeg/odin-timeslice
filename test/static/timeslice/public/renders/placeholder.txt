@@ -1,0 +1,1 @@
+File Created to keep empty render folder available in git

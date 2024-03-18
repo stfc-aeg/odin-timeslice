@@ -47,7 +47,9 @@ class TimesliceAdapter(ApiAdapter):
 
         rendered_files = (self.options.get('rendered_files'))
         config_message = (self.options.get('config_message'))
-        self.timeslice = Timeslice(rendered_files,config_message)
+        sent_files = (self.options.get('send_files'))
+        source_email = (self.options.get('source_email', "Timeslice Team <timeslice@stfc.ac.uk>"))
+        self.timeslice = Timeslice(rendered_files, config_message, sent_files, source_email)
 
         logging.debug('TimesliceAdapter loaded')
 
@@ -99,7 +101,7 @@ class TimesliceAdapter(ApiAdapter):
             response = {'error': 'Failed to decode PUT request body: {}'.format(str(e))}
             status_code = 400
 
-        logging.debug(response)
+        # logging.debug(response)
 
         return ApiAdapterResponse(response, content_type=content_type,
                                   status_code=status_code)
@@ -133,17 +135,19 @@ class Timeslice():
     # Thread executor used for background tasks
     executor = futures.ThreadPoolExecutor(max_workers=1)
 
-    def __init__(self, rendered_files, config_message,):
+    def __init__(self, rendered_files, config_message, sent_files, source_email):
         """Initialise the Timeslice object.
 
         This constructor initlialises the Timeslice object, building a parameter tree and
         launching a background task if enabled
         """
         self.rendered_files = rendered_files
+        self.sent_files_dir = sent_files
         self.config_message = config_message
         self.access_codes = []
         self.files = []
-        self.email_address = ""
+        self.email_address = []
+        self.source_email = source_email
 
         # Store initialisation time
         self.init_time = time.time()
@@ -158,14 +162,18 @@ class Timeslice():
             'server_uptime': (self.get_server_uptime, None),
             'access_codes': (lambda: self.access_codes, None),
             'add_access_code': ("", self.add_task_access_code),
-            'rendered_files': (lambda: self.rendered_files,None),
-            'config_message': (lambda: self.config_message,None),
-            'clear_access_codes' : (False, self.clear_access_codes),
-            'clear_email' : (False, self.clear_email),
-            'email_address' : (lambda: self.email_address, None),
-            'add_email_address' : ("", self.add_email_address),
-            'send_email_new' : (False, self.send_email_new),
+            'remove_access_code': ("", self.remove_selected_code),
+            'clear_access_codes': (False, self.clear_access_codes),
+            'rendered_files': (lambda: self.rendered_files, None),
+            'config_message': (lambda: self.config_message, None),
+            'clear_email': (False, self.clear_email),
+            'email_address': (lambda: self.email_address, None),
+            'add_email_address': ("", self.add_email_address),
+            'remove_email_address': ("", self.remove_selected_email),
+            'send_email_new': (False, self.send_email_new),
             'files': (lambda: self.files, None),
+            "avail_file_list": (self.get_avail_videos, self.refresh_avail_videos),
+            "sent_file_list": (self.get_sent_videos, None)
 
         })     
 
@@ -216,19 +224,30 @@ class Timeslice():
         if access_code in self.access_codes: 
             raise TimesliceError("This code is already stored")
         
-        file_path = os.path.join(self.rendered_files, access_code + '.mp4')
-        logging.debug("Testing if file {} exists".format(file_path))
-        if os.path.isfile(os.path.join(file_path)):
+        # file_path = os.path.join(self.rendered_files, access_code + '.mp4')
+        logging.debug("Testing if file {} exists".format(access_code + ".mp4"))
+        if os.path.isfile(os.path.join(self.rendered_files, access_code + '.mp4')):
             logging.debug("adding access code %s", access_code)
 
             self.access_codes.append(access_code)
-            self.files.append(file_path)
+            self.files.append(os.path.join(self.rendered_files, access_code + '.mp4'))
+            logging.debug(self.access_codes)
+            logging.debug(self.files)
+        elif os.path.isfile(os.path.join(self.sent_files_dir, access_code + '.mp4')):
+            logging.debug("adding access code %s", access_code)
+
+            self.access_codes.append(access_code)
+            self.files.append(os.path.join(self.sent_files_dir, access_code + '.mp4'))
             logging.debug(self.access_codes)
             logging.debug(self.files)
         else:
             raise TimesliceError("This access code does not match any stored videos, please try again")
-    
-    
+
+    def remove_selected_code(self, code_to_clear):
+        if code_to_clear in self.access_codes:
+            self.access_codes.remove(code_to_clear)
+            self.files = [file for file in self.files if not file.endswith(code_to_clear + ".mp4")]
+
     def clear_access_codes(self, clear):
         """ This empties both the access codes list and the files list used for attaching mp4
         files.
@@ -242,59 +261,88 @@ class Timeslice():
 
     def clear_email(self, clear):
         """ This empties the stored email address when the page loads"""
-        self.email_address = None
-        logging.debug("clearing email: %s",clear)
+        self.email_address = []
+        logging.debug("clearing email: %s", clear)
 
-    
+    def remove_selected_email(self, email_to_clear):
+        if email_to_clear in self.email_address:
+            self.email_address.remove(email_to_clear)
+
     def add_email_address(self, email_address):
         """This sets the email address for videos to be sent to
         """
-        self.email_address = email_address
+        if email_address not in self.email_address:
+            self.email_address.append(email_address)
 
         logging.debug("Email address recieved: %s", email_address)
 
-    
     def send_email_new(self, send):
         """This is the code that actually collects the various pieces of entered information
         and uses them to send an email out to the timeslice user
         """
-
+        email_success = False
         config_message = self.config_message
 
         subject = "Timeslice videos"
-        body = (config_message).format(self.email_address, self.access_codes)
-        sender_email = "Catherine Carrigan <catherine.carrigan@stfc.ac.uk>"
-        receiver_email = '{0}'.format(self.email_address)
+        body = (config_message).format(self.email_address, self.access_codes, len(self.access_codes))
+        sender_email = self.source_email
 
-        message = MIMEMultipart()
-        message["From"] = sender_email
-        message["To"] = receiver_email
-        message["Subject"] = subject
+        for receiver_email in self.email_address:
+            # receiver_email = '{0}'.format(receiver_email)
 
-        message.attach(MIMEText(body, "plain"))
-        files_list = self.access_codes
-        logging.debug(files_list)
-        
-        for file_number, a_file in enumerate(files_list, start=1):
-            a_file = os.path.join(self.rendered_files, a_file + '.mp4')
-            attachment = open(a_file, "rb")
-            filename = 'STFC-Timeslice-video-{}'.format(file_number)+'.mp4'
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment.read())
+            message = MIMEMultipart()
+            message["From"] = sender_email
+            message["To"] = '{0}'.format(receiver_email)
+            message["Subject"] = subject
 
-            encoders.encode_base64(part)
+            message.attach(MIMEText(body, "plain"))
+            files_list = self.files
+            logging.debug(files_list)
+            
+            for file_number, a_file in enumerate(files_list, start=1):
+                # a_file = os.path.join(self.rendered_files, a_file + '.mp4')
+                attachment = open(a_file, "rb")
+                filename = 'STFC-Timeslice-video-{}'.format(file_number)+'.mp4'
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(attachment.read())
 
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename= {filename}",
-            )
+                encoders.encode_base64(part)
 
-            message.attach(part)
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename= {filename}",
+                )
 
-        try:
-            smtp_obj = smtplib.SMTP('outbox.rl.ac.uk')
-            smtp_obj.sendmail(sender_email, receiver_email, message.as_string())
-            logging.debug("Yay, we sent mail")
-        except smtplib.SMTPException as error:
-            logging.debug("Boo, emailing failed: {}".format(str(error)))
+                message.attach(part)
+
+            try:
+                smtp_obj = smtplib.SMTP('outbox.rl.ac.uk')
+                smtp_obj.sendmail(sender_email, receiver_email, message.as_string())
+                logging.debug("Yay, we sent mail")
+                email_success = True
+            except smtplib.SMTPException as error:
+                logging.debug("Boo, emailing failed: {}".format(str(error)))
+        # end for loop
+
+        # move sent videos to new folder to remove them from the list
+        if email_success:
+            for file in files_list:
+                file_name = os.path.basename(file)
+                file_origin = os.path.join(self.rendered_files, file_name)
+                
+                if os.path.isfile(file_origin):
+                    file_move = os.path.join(self.sent_files_dir, file_name)
+                    os.rename(file_origin, file_move)
+
+    def get_avail_videos(self):
+        file_list = [f for f in os.listdir(self.rendered_files) if f.endswith("mp4")]
+        file_list.sort(key=lambda x: os.path.getatime(os.path.join(self.rendered_files, x)), reverse=True)
+        return file_list
     
+    def get_sent_videos(self):
+        file_list = [f for f in os.listdir(self.sent_files_dir) if f.endswith("mp4")]
+        file_list.sort(key=lambda x: os.path.getatime(os.path.join(self.sent_files_dir, x)), reverse=True)
+        return file_list
+
+    def refresh_avail_videos(self, _):
+        pass
