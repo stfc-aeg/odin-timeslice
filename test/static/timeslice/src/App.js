@@ -40,9 +40,13 @@ function App() {
   const [email, changeEmail] = useState("");
   const [modal_show, changeModalShow] = useState(false);
   const [email_success, changeEmailSuccess] = useState(false);
+  const [logo_hover, changeLogoHover] = useState(false);
 
   const handleShow = () => changeModalShow(true);
   const handleHide = () => changeModalShow(false);
+
+  const handleHoverOn = () => changeLogoHover(true);
+  const handleHoverOff = () => changeLogoHover(false);
     
   const codeChangeHandler = (event) => {
     console.log(event);
@@ -160,12 +164,15 @@ function App() {
 
   return (
     <>
-   <NavBar bg='dark' variant='dark'>
+   <NavBar data-bs-theme='dark' style={{background: '#505050'}}>
       <NavBar.Brand href='#'>
-        <img src='odin.png' 
-        height="30"
+        {/* I added the pride logo as a hoverover easter egg. So sue me */}
+        <img src={logo_hover ? 'UKRI_PRIDE_STFC_logo.png' : 'UKRI_STFC_logo.png'}
+        height="35"
         style={{marginLeft: "5px", marginRight: "10px"}}
-        alt='STFC Logo'/>
+        alt='STFC Logo'
+        onMouseEnter={handleHoverOn}
+        onMouseLeave={handleHoverOff}/>
         Timeslice Camera Email Service
       </NavBar.Brand>
    </NavBar>
