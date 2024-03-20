@@ -75,12 +75,15 @@ function App() {
   }
 
   const postEmailCleanup = () => {
-    console.log("Email Sent, clearing up inputs");
-    endpoint.put({"clear_access_codes": true}).then((response) => endpoint.mergeData(response, ""));
-    endpoint.put({"clear_email": true}).then((response) => endpoint.mergeData(response, ""));
-    changeCode("");
-    changeEmail("");
-    handleShow();
+    if(email_success)
+    {
+      console.log("Email Sent, clearing up inputs");
+      endpoint.put({"clear_access_codes": true}).then((response) => endpoint.mergeData(response, ""));
+      endpoint.put({"clear_email": true}).then((response) => endpoint.mergeData(response, ""));
+      changeCode("");
+      changeEmail("");
+      handleShow();
+    }
   }
   const video_list_reshaper = (video_list, cols) => {
     var matrix = [], i, k;
@@ -261,7 +264,9 @@ function App() {
               <Modal.Title>Email Sent</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              The selected videos have been emailed! You may now close this popup.
+              {email_success ? "The selected videos have been emailed! You may now close this popup." :
+                               "Sending Email Failed. Check server logs for details."}
+              
             </Modal.Body>
           </Modal>
         </Container>
