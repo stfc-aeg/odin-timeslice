@@ -47,7 +47,12 @@ class TimesliceAdapter(ApiAdapter):
 
         rendered_files = (self.options.get('rendered_files'))
         config_message = (self.options.get('config_message'))
-        self.timeslice = Timeslice(rendered_files,config_message)
+        smtp_relay = (self.options.get('smtp_relay'))
+        smtp_port = int(self.options.get('smtp_port', 25))
+        source_email_addr = (self.options.get('source_email_addr'))
+
+        self.timeslice = Timeslice(
+            rendered_files,config_message, smtp_relay, smtp_port, source_email_addr)
 
         logging.debug('TimesliceAdapter loaded')
 
@@ -133,7 +138,7 @@ class Timeslice():
     # Thread executor used for background tasks
     executor = futures.ThreadPoolExecutor(max_workers=1)
 
-    def __init__(self, rendered_files, config_message,):
+    def __init__(self, rendered_files, config_message, smtp_relay, smtp_port, source_email_addr):
         """Initialise the Timeslice object.
 
         This constructor initlialises the Timeslice object, building a parameter tree and
@@ -141,6 +146,9 @@ class Timeslice():
         """
         self.rendered_files = rendered_files
         self.config_message = config_message
+        self.smtp_relay = smtp_relay
+        self.smtp_port = smtp_port
+        self.source_email_addr = source_email_addr
         self.access_codes = []
         self.files = []
         self.email_address = ""
@@ -213,6 +221,8 @@ class Timeslice():
         Otherwise the system sends out an error message
         """
 
+        access_code = access_code.upper()
+
         if access_code in self.access_codes: 
             raise TimesliceError("This code is already stored")
         
@@ -262,8 +272,8 @@ class Timeslice():
         config_message = self.config_message
 
         subject = "Timeslice videos"
-        body = (config_message).format(self.email_address, self.access_codes)
-        sender_email = "Catherine Carrigan <catherine.carrigan@stfc.ac.uk>"
+        body = (config_message).format(self.email_address, ', '.join(self.access_codes))
+        sender_email = self.source_email_addr
         receiver_email = '{0}'.format(self.email_address)
 
         message = MIMEMultipart()
@@ -292,7 +302,7 @@ class Timeslice():
             message.attach(part)
 
         try:
-            smtp_obj = smtplib.SMTP('outbox.rl.ac.uk')
+            smtp_obj = smtplib.SMTP(self.smtp_relay, port=self.smtp_port)
             smtp_obj.sendmail(sender_email, receiver_email, message.as_string())
             logging.debug("Yay, we sent mail")
         except smtplib.SMTPException as error:
