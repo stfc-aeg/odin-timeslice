@@ -9,3 +9,15 @@ body {
     padding: 40px 15px;
     text-align: center;
 }
+
+.row {
+    display: flex;
+}
+
+
+.left {
+    flex: 80%
+}
+.right {
+    flex: 20%
+}
