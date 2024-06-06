@@ -75,15 +75,12 @@ function App() {
   }
 
   const postEmailCleanup = () => {
-    if(email_success)
-    {
       console.log("Email Sent, clearing up inputs");
       endpoint.put({"clear_access_codes": true}).then((response) => endpoint.mergeData(response, ""));
       endpoint.put({"clear_email": true}).then((response) => endpoint.mergeData(response, ""));
       changeCode("");
       changeEmail("");
       handleShow();
-    }
   }
   const video_list_reshaper = (video_list, cols) => {
     var matrix = [], i, k;
@@ -124,7 +121,7 @@ function App() {
       <Row>
         {selection.map((sub_select, index) => (
         <Col>
-          <VideoThumbnail src={`renders/${sub_select}`} title={sub_select.slice(0, -4)} clickHandler={videoClickHandler}
+          <VideoThumbnail src={`${endpoint.data?.rendered_files}/${sub_select}`} title={sub_select.slice(0, -4)} clickHandler={videoClickHandler}
           isSelected={endpoint.data?.access_codes ? endpoint.data.access_codes.includes(sub_select.slice(0, -4)) : false}/>
         </Col>
         ))}
@@ -140,7 +137,7 @@ function App() {
         <Row>
         {selection.map((sub_select, index) => (
         <Col>
-          <VideoThumbnail src={`renders/${sub_select}`} title={sub_select.slice(0, -4)} clickHandler={videoClickHandler}
+          <VideoThumbnail src={`${endpoint.data?.sent_files}/${sub_select}`} title={sub_select.slice(0, -4)} clickHandler={videoClickHandler}
           isSelected={endpoint.data?.access_codes ? endpoint.data.access_codes.includes(sub_select.slice(0, -4)) : false}/>
         </Col>
         ))}

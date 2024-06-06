@@ -1,6 +1,4 @@
-import { React, useState } from "react";
-import Image from 'react-bootstrap/Image';
-import Card from 'react-bootstrap/Card';
+import { React } from "react";
 import Alert from 'react-bootstrap/Alert';
 
 const VideoThumbnail = (props) => {
@@ -12,15 +10,11 @@ const VideoThumbnail = (props) => {
     }
 
     const onMouseEnterHandler = (event) => {
-        console.log("MOUSE ENTER");
-        console.log(event);
         event.target.play()
         .then().catch( (err) => {
         console.log(err.message)});
     }
     const onMouseLeaveHandler = (event) => {
-        console.log("MOUSE LEAVE");
-        console.log(event);
         try {
             event.target.pause();
             event.target.currentTime = 0;

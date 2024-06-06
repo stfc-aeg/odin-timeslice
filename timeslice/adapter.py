@@ -52,7 +52,7 @@ class TimesliceAdapter(ApiAdapter):
         smtp_port = int(self.options.get('smtp_port', 25))
         source_email = (self.options.get('source_email'))
         self.timeslice = Timeslice(
-            rendered_files,config_message, smtp_relay, smtp_port, source_email_addr)
+            rendered_files, sent_files, config_message, smtp_relay, smtp_port, source_email)
 
 
         logging.debug('TimesliceAdapter loaded')
@@ -139,7 +139,7 @@ class Timeslice():
     # Thread executor used for background tasks
     executor = futures.ThreadPoolExecutor(max_workers=1)
 
-    def __init__(self, rendered_files, config_message, smtp_relay, smtp_port, source_email):
+    def __init__(self, rendered_files, sent_files, config_message, smtp_relay, smtp_port, source_email):
         """Initialise the Timeslice object.
 
         This constructor initlialises the Timeslice object, building a parameter tree and
@@ -171,6 +171,7 @@ class Timeslice():
             'remove_access_code': ("", self.remove_selected_code),
             'clear_access_codes': (False, self.clear_access_codes),
             'rendered_files': (lambda: self.rendered_files, None),
+            'sent_files': (lambda: self.sent_files_dir, None),
             'config_message': (lambda: self.config_message, None),
             'clear_email': (False, self.clear_email),
             'email_address': (lambda: self.email_address, None),
