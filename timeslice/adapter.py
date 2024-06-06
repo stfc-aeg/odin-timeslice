@@ -48,8 +48,12 @@ class TimesliceAdapter(ApiAdapter):
         rendered_files = (self.options.get('rendered_files'))
         config_message = (self.options.get('config_message'))
         sent_files = (self.options.get('send_files'))
-        source_email = (self.options.get('source_email', "Timeslice Team <timeslice@stfc.ac.uk>"))
-        self.timeslice = Timeslice(rendered_files, config_message, sent_files, source_email)
+        smtp_relay = (self.options.get('smtp_relay'))
+        smtp_port = int(self.options.get('smtp_port', 25))
+        source_email = (self.options.get('source_email'))
+        self.timeslice = Timeslice(
+            rendered_files,config_message, smtp_relay, smtp_port, source_email_addr)
+
 
         logging.debug('TimesliceAdapter loaded')
 
@@ -135,7 +139,7 @@ class Timeslice():
     # Thread executor used for background tasks
     executor = futures.ThreadPoolExecutor(max_workers=1)
 
-    def __init__(self, rendered_files, config_message, sent_files, source_email):
+    def __init__(self, rendered_files, config_message, smtp_relay, smtp_port, source_email):
         """Initialise the Timeslice object.
 
         This constructor initlialises the Timeslice object, building a parameter tree and
@@ -144,6 +148,8 @@ class Timeslice():
         self.rendered_files = rendered_files
         self.sent_files_dir = sent_files
         self.config_message = config_message
+        self.smtp_relay = smtp_relay
+        self.smtp_port = smtp_port
         self.access_codes = []
         self.files = []
         self.email_address = []
@@ -220,6 +226,8 @@ class Timeslice():
         the mp4 file to the email.
         Otherwise the system sends out an error message
         """
+
+        access_code = access_code.upper()
 
         if access_code in self.access_codes: 
             raise TimesliceError("This code is already stored")
@@ -316,7 +324,7 @@ class Timeslice():
                 message.attach(part)
 
             try:
-                smtp_obj = smtplib.SMTP('outbox.rl.ac.uk')
+                smtp_obj = smtplib.SMTP(self.smtp_relay, port=self.smtp_port)
                 smtp_obj.sendmail(sender_email, receiver_email, message.as_string())
                 logging.debug("Yay, we sent mail")
                 email_success = True
