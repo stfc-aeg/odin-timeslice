@@ -1,9 +1,8 @@
-import logo from './logo.svg';
 import './App.css';
 
 import React, {useState} from 'react';
 
-import { OdinApp, TitleCard, WithEndpoint, useAdapterEndpoint } from 'odin-react';
+import { TitleCard, WithEndpoint, useAdapterEndpoint } from 'odin-react';
 
 import styles from './App.css'
 
