@@ -41,5 +41,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            app_build.tgz
-            app_build.zip
+            control/test/static/timeslice/app_build.tgz
+            control/test/static/timeslice/app_build.zip
