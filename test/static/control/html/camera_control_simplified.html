@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>Timeslice Camera</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../js/bootstrap/css/bootstrap-4.2.1.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/camera-control-simplified.css" rel="stylesheet" type="text/css">
+
+    <link href="../js/bootstrap/css/font-awesome.css" rel="stylesheet" type="text/css">
+  </head>
+
+  <body>
+    <div class="vertical-center">
+      <div class="container-fluid text-center">
+        <div id="index-view" class="">
+          <div>
+            <h3>Enable Countdown</h3>
+            <label class="switch">
+            <input type="checkbox" id="countdown-active"/>
+            <span class="slider round"></span>
+          </div>
+          <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <div id="system-state" class="alert mx-auto" role="alert"></div>
+            </div>
+            <div class="col-md-3"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <button id="capture-button" class="btn btn-primary">
+                <h3>Capture</h3>
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+              <h4>&nbsp;</h4>
+              <div id="index-view-message"></div>
+            </div>
+            <div class="col-md-1"></div>
+          </div>
+        </div>
+        <div id="countdown-view" class="d-none">
+          <div class="row">
+            <div class="col-md-12">
+              <div id="countdown"></div>
+            </div>
+          </div>
+        </div>
+        <div id="capture-view" class="d-none">
+          <div class="row">
+            <div class="col-md-12">
+              <div id="capture-message"></div>
+            </div>
+          </div>
+        </div>
+        <div id="loading-view">
+          <div id="step-progress-bar" class="d-none">
+            <div class="row">
+              <div class="col-md"></div>
+              <div class="col-md-3">
+                <div id="circle-capture" class=""></div>
+                <h4>Capture</h4>
+              </div>
+              <div class="col-md-3">
+                <div id="circle-retrieve" class=""></div>
+                <h4>Retrieve</h4>
+              </div>
+              <div class="col-md-3">
+                <div id="circle-render" class=""></div>
+                <h4>Render</h4>
+              </div>
+              <div class="col-md"></div>
+            </div>
+          </div>
+          <div id="loading-element" class="d-done">
+            <div class="row">
+              <div class="col-md-12">
+                <div id="loader"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="error-view" class="d-none">
+          <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+              <div id="error-message"></div>
+            </div>
+            <div class="col-md-2"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <h4>&nbsp;</h4>
+              <button id="start-again-button" class="btn btn-primary">
+                <h3>Start Again</h3>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="retake-save-view" class="d-none">
+          <div class="row">
+            <div class="col-md"></div>
+            <div class="col-md-4">
+              <button id="retake-button" class="btn btn-primary">
+                <h3>Retake</h3>
+              </button>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-4">
+              <button id="save-button" class="btn btn-primary">
+                <h3>Save</h3>
+              </button>
+            </div>
+            <div class="col-md"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+              <h4>Tap Save to save this video or tap Retake to start capturing a new video.</h4>
+            </div>
+            <div class="col-md-1"></div>
+          </div>
+        </div>
+        <div id="access-code-view" class="d-none">
+          <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <div>
+                <h2><b>Your access code is:</b></h2>
+              </div>
+              <div id="access-code" class="mx-auto alert-success" role="alert"></div>
+            </div>
+            <div class="col-md-3"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <h4>&nbsp;</h4>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+              <h4>Please write your access code on the card provided to you and follow the instructions on the back of the card to get a copy of your video.</h4>
+              <h4>&nbsp;</h4>
+            </div>
+            <div class="col-md-1"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <button id="done-button" class="btn btn-primary">
+                <h3>Done</h3>
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <h4>&nbsp;</h4>
+              <h4>Tap Done when you are finished writing your access code.</h4>
+            </div>
+          </div>
+        </div>
+        <div id="final-view" class="d-none">
+          <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+              <h4>Your video was successfully saved. Do not forget to take your card with you.</h4>
+              <h4>&nbsp;</h4>
+              <h4>&nbsp;</h4>
+              <h4>Thank you! You can now tap Finish.</h4>
+            </div>
+            <div class="col-md-1"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <h4>&nbsp;</h4>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <button id="finish-button" class="btn btn-primary">
+                <h3>Finish</h3>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../js/jquery-2.1.4/jquery.min.js"></script>
+    <script src="../js/bootstrap/js/bootstrap-4.2.1.min.js"></script>
+    <script src="../js/camera_control_simplified.js" type="text/javascript"></script>
+  </body>
+</html>

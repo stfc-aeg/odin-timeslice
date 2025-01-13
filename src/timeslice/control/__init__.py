@@ -1,0 +1,2 @@
+class TimesliceError(Exception):
+    pass

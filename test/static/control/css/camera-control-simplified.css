@@ -1,0 +1,168 @@
+html, body {
+    position: relative;
+    height: 100%;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+/* Vertically centers the content on the page*/
+.vertical-center {
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.btn {
+    height:75px;
+    width: 200px;
+}
+
+#system-state {
+    width: 300px;
+    margin-top: 3%;
+    margin-bottom: 50%;
+}
+
+#countdown {
+    font-size: 200px;
+}
+
+#step-progress-bar {
+    margin-bottom: 10%;
+}
+
+.circle-inactive {
+    height: 70px;
+    width: 70px;
+    font-size: 40px;
+    color: white;
+    background-color:#ccc;
+    border-radius: 50%;
+    display: inline-block;
+}
+  
+.circle-in-progress {
+    height: 70px;
+    width: 70px;
+    font-size: 40px;
+    color: white;
+    background-color:#5bc0de;
+    border-radius: 50%;
+    display: inline-block;
+    
+}
+  
+.circle-completed {
+    height: 70px;
+    width: 70px;
+    font-size: 40px;
+    color: white;
+    background-color: #5cb85c;
+    border-radius: 50%;
+    display: inline-block;
+    
+}
+  
+.circle-failed {
+    height: 70px;
+    width: 70px;
+    font-size: 40px;
+    color: white;
+    background-color:#dc3545;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.bar-icons {
+    line-height: 70px;
+}
+
+#loader {
+    display: inline-block;
+    border: 16px solid #DBDBDB;
+    border-radius: 50%; /* Creates a circle */
+    border-top: 16px solid #2ECC71;
+    width: 200px;
+    height: 200px;
+    animation: spin 1s linear infinite; /* Creates a 1 sec infinite animation; same speed from start to end */
+}
+  
+/* Animation code for the loader */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#retake-button {
+    margin-bottom: 10%;
+}
+
+#save-button {
+    margin-bottom: 10%;
+}
+
+#access-code {
+    height: 50px;
+    width: 200px;
+    border: 3px solid black;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    height: 30px;
+  }
+  
+  /* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    /* width: 0;
+    height: 0; */
+  }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+input:checked + .slider {
+    background-color: #2196F3;
+  } 
+  
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  } 
+  
+input:checked + .slider:before {
+    -webkit-transform: translateX(70px);
+    -ms-transform: translateX(70px);
+    transform: translateX(70px);
+  }
+  
+  /* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }

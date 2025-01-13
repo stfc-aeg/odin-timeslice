@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Timeslice Camera</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/js/bootstrap/css/bootstrap-3.3.4.min.css" rel="stylesheet">
+
+    <!-- Bootstrap switch CSS -->
+    <link href="/js/bootstrap/css/bootstrap-switch-3.3.2.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/css/camera-control.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#"><img class="navbar-brand logo" src="/img/ukri_logo.png"></a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#">Timeslice Camera</a></li>
+            <li><a href="#about-modal" role="button" data-toggle="modal">About</a></li>
+            <li class="dropdown">
+	          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">System <span class="caret"></span></a>
+	          <ul class="dropdown-menu">
+	            <li><a href="#version-modal" role="button" data-toggle="modal" id="version-info-link">Software version info</a></li>
+	            <li><a href="#">Update camera servers</a></li>
+	            <li><a href="#">Restart camera servers</a></li>
+	            <li role="separator" class="divider"></li>
+	            <li><a href="#">Power down cameras</a></li>
+	          </ul>
+	        </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="camera-control">
+            <div class="row equal">
+            	<div class="col-md-6">
+	                <div id="capture" class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Timeslice Capture</h3>
+                        </div>
+                        <div class="panel-body" style="height:100%">
+                        	<div class="container-fluid">
+	                        	<div class="row">
+	                        		<div class="col-md-4">
+	                        			<div><label><b>Render loops:</b></label></div>
+	                        			<select id="render-loop-select" class="form-control input-sm">
+	                        				<option>1</option>
+	                        				<option>2</option>
+	                        				<option>3</option>
+	                        				<option>5</option>
+	                        				<option>10</option>
+	                        			</select>
+	                        		</div>
+	                        		<div class="col-md-4">
+		                        		<div><label><b>Stagger capture:</b></label></div>
+		                        		<input type="checkbox" name="stagger-enable-checkbox" data-size="small">
+	                        		</div>
+	                        		<div class="col-md-4">
+	                        			<div><label><b>Stagger offset:</b></label></div>
+	                        			<div class="input-group input-group-sm">
+		                        			<input type="text" id="stagger-offset-input" class="form-control text-right" placeholder="0" aria-describedby="stagger-offset-addon"/>
+		                        			<span class="input-group-addon" id="stagger-offset-addon">ms</span>
+	                        			</div>
+	                        		</div>
+	                        	</div>
+	                            <div class="row">
+		                            <div class="col-md-12 text-left"><h5><b>Last rendered timeslice:</b>&nbsp;<span id="last-render-file">????</span></h5></div>
+	                            </div>
+	                        	<div class="row">
+	                        		<div class="col-md-8 text-left">
+		                                <h4><span id="capture-state" class="label label-success">Capture state</span></h4>
+	                        		</div>
+	                        		<div class="col-md-4">
+			                            <button type="button" id="captureButton" data-loading-text="Capturing..." class="btn btn-primary" autocomplete="off">
+			                                Capture
+			                            </button>
+	                        		</div>
+	                        	</div>
+                        	</div>
+                        </div>
+                    </div><!-- /.capture -->
+            	</div>
+
+            	<div class="col-md-6">
+	                <div id="config" class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Camera Configuration</h3>
+                        </div>
+                        <div class="panel-body" style="height:100%">
+	                        <div class="container-fluid">
+	                        	<div class="row">
+	                        		<div class="col-md-4">
+	                        			<div><label><b>Resolution:</b></label></div>
+	                        			<select id="config-resolution-select" class="form-control input-sm">
+	                        				<option>2592x1944</option>
+	                        				<option>1920x1080</option>
+	                        				<option>1296x972</option>
+	                        				<option>1296x730</option>
+	                        				<option>1280x720</option>
+	                        				<option>1024x768</option>
+	                        				<option>640x480</option>
+	                        			</select>
+	                        		</div>
+	                        		<div class="col-md-4">
+                    			        <div><label><b>ISO:</b></label></div>
+	                        			<select id="config-iso-select" class="form-control input-sm">
+											<option>100</option>
+											<option>200</option>
+											<option>320</option>
+											<option>400</option>
+											<option>500</option>
+											<option>640</option>
+											<option>800</option>
+	                        			</select>
+	                        		</div>
+	                        		<div class="col-md-4">
+                    			        <div><label><b>Shutter (us):</b></label></div>
+	                        			<select id="config-shutter-select" class="form-control input-sm">
+                                            <option>30000</option>
+                                            <option>10000</option>
+                                            <option>6000</option>
+	                        				<option>3000</option>
+		                        			<option>1000</option>
+											<option>500</option>
+											<option>250</option>
+											<option>125</option>
+											<option>60</option>
+											<option>30</option>
+	                        			</select>
+	                        		</div>
+	                        	</div><!-- /.row -->
+                    		    <div class="row">
+		                            <div class="col-md-12 text-left"><h5>&nbsp;</h5></div>
+	                            </div>
+                                <div class="row">
+                                    <div class="col-md-8 text-left">
+                                        <h4><span id="configure-state" class="label label-success" align="left">Test</span></h4>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" id="camera-config-button" class="btn btn-primary" autocomplete="off">
+                                            Configure
+                                        </button>
+                                    </div>
+                                </div>
+	                        </div>
+                        </div>
+                    </div><!-- /.config -->
+            	</div>
+            </div>
+
+            <div class="row equal">
+                <div class="col-md-6">
+                    <div id="system" class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">System Status</h3>
+                        </div>
+                        <div class="panel-body" style="height:100%">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-4">
+                                        <div><label><b>Monitor cameras:</b></label></div>
+                                        <input type="checkbox" name="monitor-enable-checkbox" data-size="small">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div><label>Camera enable:</label></div>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button id="camera-enable-all"   class="btn btn-primary">All</button>
+                                            <button id="camera-enable-none"  class="btn btn-primary">None</button>
+                                            <button id="camera-enable-alive" class="btn btn-primary">Alive</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-1"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div id="camera-state">
+                                            <!-- This div is populated dynamically by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h4><span id="system-state" class="label label-danger">&nbsp;</span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /.system_status -->
+                </div>
+
+                <div class="col-md-6">
+                        <div id="preview" class="panel panel-primary">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Camera Preview</h3>
+                            </div>
+                            <div class="panel-body" style="height:100%">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div><label><b>Enable:<b></label></div>
+                                            <input type="checkbox" name="preview-enable-checkbox" data-size="small">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Camera:</label>
+                                            <select id="preview-camera-select" class="form-control input-sm">
+                                                <!-- This select will be populated dynamically by JS -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Update time (s):</label>
+                                            <select id="preview-update-select" class="form-control input-sm">
+                                                <option>1</option>
+                                                <option>2</option>
+                                                <option>5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <a href="/api/0.1/timeslice/preview" target="_blank">
+                                            	<img id="preview-image" class="resize padded loadlater" src="/api/0.1/timeslice/preview" data-src="/api/0.1/timeslice/preview">
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- /.preview -->
+                </div>
+            </div> <!-- /.row -->
+        </div><!-- /.starter-template -->
+    </div><!-- /.container -->
+
+    <!-- Version info modal -->
+    <div class="modal fade" id="version-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Camera Version Information</h4>
+          </div>
+          <div class="modal-body">
+          <div id="version-modal-content" class="container-fluid">
+              <table class="table table-condensed table-striped">
+                  <thead>
+                    <tr>
+                        <th width="10%">Camera</th><th width="15%">Version</th><th width="25%">Time</th>
+                        <th width="10%">Camera</th><th width="15%">Version</th><th width="25%">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+              </table>
+          </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="version-modal-refresh">Refresh</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="about-modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">About the Timeslice Camera</h4>
+          </div>
+          <div class="modal-body">
+            <p>Body text</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/js/jquery-2.1.4/jquery.min.js"></script>
+    <script src="/js/bootstrap/js/bootstrap-3.3.4.min.js"></script>
+    <script src="/js/bootstrap/js/bootstrap-switch-3.3.2.min.js"></script>
+    <script src="/js/camera_control.js" type="text/javascript"></script>
+
+
+  </body>
+</html>

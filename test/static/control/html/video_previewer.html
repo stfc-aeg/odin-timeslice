@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>Timeslice Video Previewer</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../js/bootstrap/css/bootstrap-4.2.1.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/video-previewer.css" rel="stylesheet" type="text/css">
+  </head>
+
+  <body>
+    <div class="vertical-center">
+        <div class="container-fluid text-center">
+            <div id="video-view">
+                <div class="row">
+                    <div class="col-md-12">
+                        <!-- Do not remove the 'muted' attribute as the video will not automatically play -->
+                        <video id="preview-video" preload="auto" loop autoplay muted="muted"></video>  
+                    </div>
+                </div>
+            </div>
+            <div id="image-view">
+                <div class="row">
+                    <div class="col-md-12">
+                        <!-- Displays the image that is being served to the '/preview' URL-->
+                        <img id="preview-image" class="resize padded loadlater" src="/preview" data-src="/preview">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../js/jquery-2.1.4/jquery.min.js"></script>
+    <script src="../js/bootstrap/js/bootstrap-4.2.1.min.js"></script>
+    <script src="../js/video_previewer.js" type="text/javascript"></script>
+  </body>
+</html>
