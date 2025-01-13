@@ -1,3 +1,0 @@
-include versioneer.py
-include odin_workshop/_version.py
-include timeslice/_version.py
