@@ -1,11 +1,14 @@
-import dataclasses
+from dataclasses import dataclass, fields, InitVar
+from functools import partial
 
 from odin.adapters.parameter_tree import ParameterTree
 
 from .utils import rw_param
 
-@dataclasses.dataclass
+@dataclass
 class CameraConfig:
+
+    controller: InitVar[object]
 
     resolution: str = '1024x768'
     framerate: str = '30'
@@ -19,7 +22,22 @@ class CameraConfig:
     awb_gains: str = '1.5,1.5'
     brightness: str = '50'
 
+    def __post_init__(self, controller):
+        self.controller = controller
+
     def as_tree(self):
         return ParameterTree({
-            field.name: rw_param(self, field.name) for field in dataclasses.fields(self)
+            field.name: (
+                getattr(self, field.name),
+                partial(self.set_param, field.name)
+            ) for field in fields(self)
         })
+
+    def as_dict(self):
+        return {field.name: getattr(self, field.name) for field in fields(self)}
+
+    def set_param(self, param, value):
+        if value != getattr(self, param):
+            self.controller.camera_config_changed()
+            setattr(self, param, value)
+            print(f'CameraConfig: {param} changed to {value}')

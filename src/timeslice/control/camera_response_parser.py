@@ -96,28 +96,28 @@ class CameraResponseParser(object):
     def capture_ack_response(self, id, args, raw_data):
 
         logging.debug("Got capture acknowledge from camera {}, args={}".format(id, args))
-        # self.camera_controller.update_camera_capture_state(id, True)
+        self.camera_controller.update_camera_capture_state(id, True)
 
     def capture_nack_response(self, id, args, raw_data):
 
         logging.error("Got capture no-acknowledge for camera {}, args={}".format(id, args))
-        # self.camera_controller.update_camera_capture_state(id, False)
+        self.camera_controller.update_camera_capture_state(id, False)
 
     def retrieve_ack_response(self, id, args, raw_data):
 
         image_len = len(raw_data)
 
         if image_len:
-            logging.debug("Got retrieve acknowledge from camera {}, image length={}".format(id,image_len))
+            logging.debug(f"Got retrieve acknowledge from camera {id}, image length={image_len}")
         else:
-            logging.error("Got retrieve acknowledge from camera {} but with no image data".format(id))
+            logging.error(f"Got retrieve acknowledge from camera {id} but with no image data")
 
-        # self.camera_controller.update_camera_retrieve_state(id, True, raw_data)
+        self.camera_controller.update_camera_retrieve_state(id, True, raw_data)
 
     def retrieve_nack_response(self, id, args, raw_data):
 
-        logging.error("Got retrieve no-acknowledge for camera {}, args={}".format(id, args))
-        # self.camera_controller.update_camera_retrieve_state(id, False, None)
+        logging.error(f"Got retrieve no-acknowledge for camera {id}, args={args}")
+        self.camera_controller.update_camera_retrieve_state(id, False, None)
 
     def preview_ack_response(self, id, args, raw_data):
 
@@ -137,9 +137,9 @@ class CameraResponseParser(object):
     def configure_ack_response(self, id, args, raw_data):
 
         logging.debug("Got configure acknowledge from camera {}, args={}".format(id, args))
-        # self.camera_controller.update_camera_configure_state(id, True)
+        self.camera_controller.update_camera_configure_state(id, True)
 
     def configure_nack_response(self, id, args, raw_data):
 
         logging.debug("Got configure no-acknowledge from camera {}, args={}".format(id, args))
-        # self.camera_controller.update_camera_configure_state(id, False)
+        self.camera_controller.update_camera_configure_state(id, False)

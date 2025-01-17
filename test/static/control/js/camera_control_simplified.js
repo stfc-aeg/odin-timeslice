@@ -1,54 +1,79 @@
 /*
-    The user interface "views" are displayed by removing the 'd-none' class from their div, 
-    and are hidden by adding the 'd-none' class to their div. With jQuery, it is possible 
+    The user interface "views" are displayed by removing the 'd-none' class from their div,
+    and are hidden by adding the 'd-none' class to their div. With jQuery, it is possible
     to add and remove a class from a div using the '.addClass' and '.removeClass' methods.
 */
 
-var system_state = 0;
-var capture_state = 0;
-var retrieve_state = 0;
-var render_state = 0;
-var capture_countdown_count = null;
-var process_status = null;
-var access_code = null;
+const adapter_path = "/api/0.1/timeslice/";
+
+const STATE_NOT_READY = 0;
+const STATE_READY = 1;
+
+const CAPTURE_STATE_IDLE = 0;
+const CAPTURE_STATE_CAPTURING = 1;
+const CAPTURE_STATE_FAILED = 2;
+const CAPTURE_STATE_COMPLETED = 3;
+
+const RETRIEVE_STATE_IDLE = 0;
+const RETRIEVE_STATE_RETRIEVING = 1;
+const RETRIEVE_STATE_FAILED = 2;
+const RETRIEVE_STATE_COMPLETED = 3;
+
+const RENDER_STATE_IDLE = 0;
+const RENDER_STATE_RENDERING = 1;
+const RENDER_STATE_FAILED = 2;
+const RENDER_STATE_COMPLETED = 3;
+
+var system_state = {};
+
 var countdown_active = false
 
-document.getElementById("capture-message").textContent = "Capturing"
+//document.getElementById("capture-message").textContent = "Capturing"
 
-pollCameraState();
+pollState();
 
-function pollCameraState() {
-    /* 
-        Loads data from the server by sending a getJSON request to the '/camera_state' URL,
+function pollState() {
+    /*
+        Loads data from the server by sending a getJSON request to the '/system_state' URL,
         and assigns it to different variables before calling itself again in 0.2 seconds.
     */
 
-	$.getJSON("/camera_state", function(response) {
+	$.getJSON(adapter_path + "system_state", function(response) {
         system_state = response.system_state;
-        capture_state = response.capture_state;
-        retrieve_state = response.retrieve_state;
-        render_state = response.render_state;
-        capture_countdown_count = response.capture_countdown_count;
-        process_status = response.process_status;
-        access_code = response.access_code;
     });
 
-    setTimeout(pollCameraState, 200);
+    setTimeout(pollState, 200);
 }
 
 // Calls the 'displayIndexView' function once the page is fully loaded
 $(document).ready(displayIndexView);
 
+function do_command(command)
+{
+    data = {}
+    data[command] = true;
+
+    $.ajax({
+        type: 'PUT',
+        url: adapter_path + 'command',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+    });
+}
+
 function capture() {
-    // Sends a post request to the '/capture_countdown' URL and calls the 'displayCountdownView' function. 
+    // Sends a post request to the '/capture_countdown' URL and calls the 'displayCountdownView' function.
 
     if (countdown_active) {
         displayCountdownView();
-        $.post('/capture_countdown')
+        // $.post('/capture_countdown')
+        do_command('countdown');
     }
     else {
         awaitCaptureCapturing();
-        $.post('/capture_trigger');
+        // $.post('/capture_trigger');
+        do_command('capture');
         $('#index-view').addClass('d-none');
         $('#capture-view').removeClass('d-none')
     }
@@ -57,19 +82,21 @@ function capture() {
 function resetStates() {
     // Sends a post request to the '/reset_states' URL and calls the 'displayIndexView' function.
 
-    $.post('/reset_states');
+    // $.post('/reset_states');
+    do_command('reset');
     displayIndexView();
 }
 
 function saveVideo() {
-    // Sends a post request to the '/save_video' URL and calls the 'displayAccessCodeView' function. 
+    // Sends a post request to the '/save_video' URL and calls the 'displayAccessCodeView' function.
 
-    $.post('/save_video');
+    // $.post('/save_video');
+    do_command('save');
     displayAccessCodeView();
 }
 
-/* 
-    The '.click' method binds event handlers (functions) to click events. Keep '.click' methods 
+/*
+    The '.click' method binds event handlers (functions) to click events. Keep '.click' methods
     outside of any functions to prevent event handlers from being bound multiple times.
 */
 
@@ -82,19 +109,18 @@ $('#countdown-active').click(changeCountdown)
 
 function displayIndexView() {
     // Displays the Index view and checks the value of 'system_state' to decide which function(s) to call.
- 
+
     $('#step-progress-bar, #error-view, #loading-element, #retake-save-view, #final-view').addClass('d-none');
     $('#index-view').removeClass('d-none');
 
     /*
-        Calls the 'updateViewToNotReady' and 'awaitSystemReady' functions if the value of 'system_state' 
+        Calls the 'updateViewToNotReady' and 'awaitSystemReady' functions if the value of 'system_state'
         is 0 (not ready), othewrise it calls the 'updateViewToReady' and 'awaitSystemNotReady' functions.
     */
 
-    if(system_state == 0) {
+    if(system_state.state == STATE_NOT_READY) {
         updateViewToNotReady();
         awaitSystemReady();
-        
     } else {
         updateViewToReady();
         awaitSystemNotReady();
@@ -102,11 +128,11 @@ function displayIndexView() {
 
     function awaitSystemNotReady() {
         /*
-            Calls the 'updateViewToNotReady' and 'awaitSystemReady' functions if the value of 
+            Calls the 'updateViewToNotReady' and 'awaitSystemReady' functions if the value of
             'system_state' is 0 (not ready), othewrise it calls itself again in 0.1 seconds.
         */
 
-         if(system_state == 0) {
+         if(system_state.state == STATE_NOT_READY) {
             updateViewToNotReady();
             awaitSystemReady();
         } else {
@@ -115,8 +141,8 @@ function displayIndexView() {
     }
 
     function updateViewToNotReady() {
-        /*  
-            Updates the look of the Index view to make the user aware that the system 
+        /*
+            Updates the look of the Index view to make the user aware that the system
             is not ready, and disables the Capture button so that is not clickable.
         */
 
@@ -126,14 +152,14 @@ function displayIndexView() {
         $('#capture-button').prop("disabled", true);
         $('#index-view-message').html('<h4>Please wait until the system is ready, to be able to capture a video!</h4>');
     }
-    
+
     function awaitSystemReady() {
-        /*  
-            Calls the 'updateViewToReady' and 'awaitSystemNotReady' functions if the value 
+        /*
+            Calls the 'updateViewToReady' and 'awaitSystemNotReady' functions if the value
             of 'system_state' is 1 (ready), otherwise it calls itself again in 0.1 seconds.
         */
 
-        if(system_state == 1) {
+        if(system_state.state == STATE_READY) {
             updateViewToReady();
             awaitSystemNotReady();
         } else {
@@ -143,7 +169,7 @@ function displayIndexView() {
 
     function updateViewToReady() {
         /*
-            Updates the look of the Index view to make the user aware that the system 
+            Updates the look of the Index view to make the user aware that the system
             is ready, and enables the Capture button so that it is clickable.
         */
 
@@ -164,24 +190,24 @@ function displayCountdownView() {
     awaitCaptureCapturing();
 
     function updateCountdown() {
-        /* 
-            Takes the value of 'capture_countdown_count' and adds it to the '#countdown' element. It 
+        /*
+            Takes the value of 'capture_countdown_count' and adds it to the '#countdown' element. It
             calls itself again in 0.1 seconds if the value of 'capture_countdown_count' is not 0.
         */
-        $('#countdown').html(capture_countdown_count);
-        if (capture_countdown_count != 0) {
+        $('#countdown').html(system_state.countdown_count);
+        if (system_state.capture_countdown_count != 0) {
             setTimeout(updateCountdown, 100);
         }
     }
-} 
+}
 
 function awaitCaptureCapturing() {
-    /* 
-        Calls the 'displayLoadingView' function if the value of 'capture_state' is 
+    /*
+        Calls the 'displayLoadingView' function if the value of 'capture_state' is
         greater than or equal to 1, otherwise it calls itself again in 0.1 seconds.
     */
 
-    if (capture_state >= 1) {
+    if (system_state.capture_state != CAPTURE_STATE_IDLE) {
         displayLoadingView()
     } else {
         setTimeout(awaitCaptureCapturing, 100);
@@ -204,14 +230,14 @@ function awaitCaptureCapturing() {
         }
 
         function updateCaptureCircle() {
-            /* 
-                Calls the 'setProgressIcon' function and passes the '#circle-capture' element and the value 
+            /*
+                Calls the 'setProgressIcon' function and passes the '#circle-capture' element and the value
                 of 'capture_state' as arguments. It also calls the 'updateRetrieveCircle' if the value of
                 'capture_state is 3 (Capturing completed), otherwise it calls itself again in 0.2 seconds.
             */
 
-            setProgressIcon("#circle-capture", capture_state);
-            if(capture_state != 3) {
+            setProgressIcon("#circle-capture", system_state.capture_state);
+            if(system_state.capture_state != 3) {
                 setTimeout(updateCaptureCircle, 200);
             } else {
                 updateRetrieveCircle();
@@ -219,14 +245,14 @@ function awaitCaptureCapturing() {
         }
 
         function updateRetrieveCircle() {
-            /* 
-                Calls the 'setProgressIcon' function and passes the '#circle-retrieve' element and the value of 
-                'retrieve_state' as arguments. It also calls the 'updateRenderCircle' function if the value 
+            /*
+                Calls the 'setProgressIcon' function and passes the '#circle-retrieve' element and the value of
+                'retrieve_state' as arguments. It also calls the 'updateRenderCircle' function if the value
                 of 'retrieve_state is 3 (Retrieving completed), otherwise it calls itself again in 0.2 seconds.
             */
 
-            setProgressIcon("#circle-retrieve", retrieve_state);
-            if(retrieve_state != 3) {
+            setProgressIcon("#circle-retrieve", system_state.retrieve_state);
+            if(system_state.retrieve_state != 3) {
                 setTimeout(updateRetrieveCircle, 200);
             } else {
                 updateRenderCircle();
@@ -234,14 +260,14 @@ function awaitCaptureCapturing() {
         }
 
         function updateRenderCircle() {
-            /* 
-                Calls the 'setProgressIcon' function and passes the '#circle-render' element and the value of 
-                'render_state' as arguments. It also calls the 'awaitRenderCompleted' function if the value 
+            /*
+                Calls the 'setProgressIcon' function and passes the '#circle-render' element and the value of
+                'render_state' as arguments. It also calls the 'awaitRenderCompleted' function if the value
                 of 'render_state is 3 (Rendering completed), otherwise it calls itself again in 0.2 seconds.
             */
 
-            setProgressIcon("#circle-render", render_state);
-            if(render_state != 3) {
+            setProgressIcon("#circle-render", system_state.render_state);
+            if(system_state.render_state != 3) {
                 setTimeout(updateRenderCircle, 200);
             } else {
                 awaitRenderCompleted();
@@ -249,9 +275,9 @@ function awaitCaptureCapturing() {
         }
 
         function setProgressIcon(element, state) {
-            /* 
-                It uses the passed arguments to determine which element (circle) to manipulate and which if 
-                statement to execute. Each if statement has its own if statement to stop the code from 
+            /*
+                It uses the passed arguments to determine which element (circle) to manipulate and which if
+                statement to execute. Each if statement has its own if statement to stop the code from
                 repeatedly being executed if it has already being executed once.
             */
 
@@ -281,19 +307,19 @@ function awaitCaptureCapturing() {
 
             function displayErrorMessage() {
                 // Takes the message stored in 'process_status' and adds it to the '#error-message' element.
-                $('#error-message').html('<h4>'+process_status+'</h4>');
+                $('#error-message').html('<h4>'+system_state.process_status+'</h4>');
             }
         }
     }
 }
 
 function awaitRenderCompleted() {
-    /* 
-        Calls the 'displayRetakeSaveView' function if the value of 'render_state' 
+    /*
+        Calls the 'displayRetakeSaveView' function if the value of 'render_state'
         is 3, otherwise it calls itself again in 0.1 seconds.
     */
 
-    if (render_state != 3) {
+    if (system_state.render_state != RENDER_STATE_COMPLETED) {
         setTimeout(awaitRenderCompleted, 100);
     } else {
         displayRetakeSaveView();
@@ -307,8 +333,8 @@ function awaitRenderCompleted() {
 }
 
 function displayAccessCodeView() {
-    /* 
-        Displays the Access Code view and calls the 'emptyAccessCodeElement' 
+    /*
+        Displays the Access Code view and calls the 'emptyAccessCodeElement'
         and 'displayAccessCode' functions.
     */
 
@@ -323,15 +349,15 @@ function displayAccessCodeView() {
     }
 
     function displayAccessCode() {
-        /* 
-            Calls itself every 0.2 seconds if the 'access_code' variable is emtpy, otherwise it 
+        /*
+            Calls itself every 0.2 seconds if the 'access_code' variable is emtpy, otherwise it
             takes the string stored in 'access_code' and adds it to the '#access-code' element.
         */
 
-        if(access_code == "") {
+        if(system_state.access_code == "") {
             setTimeout(displayAccessCode, 200);
         } else {
-            $('#access-code').html('<h3>'+access_code+'</h3>');
+            $('#access-code').html('<h3>'+system_state.access_code+'</h3>');
         }
     }
 }

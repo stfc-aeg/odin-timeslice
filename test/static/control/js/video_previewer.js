@@ -17,11 +17,11 @@ function pollCameraState() {
         and assigns it to different variables before calling itself again in 1 second.
     */
 
-	$.getJSON("/camera_state", function(response) {	     
-        system_state = response.system_state;
-        capture_state = response.capture_state;
-        retrieve_state = response.retrieve_state;
-        render_state = response.render_state;
+	$.getJSON("/api/0.1/timeslice/system_state", function(response) {
+        system_state = response.system_state.state;
+        capture_state = response.system_state.capture_state;
+        retrieve_state = response.system_state.retrieve_state;
+        render_state = response.system_state.render_state;
     });
 
     setTimeout(pollCameraState, 1000);
@@ -76,6 +76,7 @@ function awaitRenderCompleted() {
     if(render_state != 3) {
         setTimeout(awaitRenderCompleted, 200);
     } else {
+        console.log("New render detected!");
         loadVideo();
         awaitCaptureIdle();
     }
@@ -87,7 +88,10 @@ function awaitRenderCompleted() {
             'displayVideoView' function after 1 second.
         */
 
-        $('#preview-video').html('<source id="video-previewer" src="/preview_video" data-src="/preview_video" type="video/mp4"></source>')
+        d = new Date();
+        data_src = "/api/0.1/timeslice/preview_video";
+        video_src = data_src + '?' + d.getTime();
+        $('#preview-video').html('<source id="video-previewer" src="' + video_src + '" data-src="' + data_src + '" type="video/mp4"></source>')
         $('#preview-video')[0].load();
         setTimeout(displayVideoView, 1000);
     }

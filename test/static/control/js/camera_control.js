@@ -22,6 +22,7 @@ config_system_pane();
 config_preview_pane();
 config_version_modal();
 resize_panels();
+update_state();
 
 function config_capture_pane()
 {
@@ -32,14 +33,15 @@ function config_capture_pane()
 
 	function update_capture_config()
 	{
-		$.getJSON("/capture_config", function(response)
+		$.getJSON(adapter_path + "capture_config", function(response)
 		{
-			capture_stagger_enable = parseInt(response.stagger_enable);
-            $("[name='stagger-enable-checkbox']").bootstrapSwitch('state', capture_stagger_enable, true);
-			$('#stagger-offset-input').val(parseInt(response.stagger_offset));
+			capture_config = response.capture_config;
+
+			$("[name='stagger-enable-checkbox']").bootstrapSwitch('state', capture_config.stagger_enable, true);
+			$('#stagger-offset-input').val(capture_config.stagger_offset);
             $(function() {
                 $('#render-loop-select option').filter(function() {
-                    return ($(this).text() == response.render_loop);
+                    return ($(this).text() == capture_config.render_loop);
                 }).prop('selected', true);
             });
 
@@ -50,32 +52,57 @@ function config_capture_pane()
 	$('#captureButton').click(function() {
 
 	    $(this).button('loading');
-
-	    $.post('/capture', function(data) {
-	        $('#captureButton').button('reset');
-	    });
+		do_capture();
 	});
 
 	$('#render-loop-select').change(function() {
-		post_capture_config_change();
+		set_capture_config();
 	});
 
 	$('input[name="stagger-enable-checkbox"]').on('switchChange.bootstrapSwitch', function(event,state) {
-	    post_capture_config_change();
+	    set_capture_config();
 	});
 
 	$('#stagger-offset-input').change(function() {
 		// TODO validate input value as integer
-		post_capture_config_change();
+		set_capture_config();
 	});
 
-	function post_capture_config_change()
+	function set_capture_config()
 	{
-        capture_stagger_enable = $("[name='stagger-enable-checkbox']").bootstrapSwitch('state');
-        render_loop = parseInt($('#render-loop-select').val());
-        stagger_offset = parseInt($('#stagger-offset-input').val());
-		$.post("/capture_config?render_loop=" + render_loop + "&stagger_enable=" + (capture_stagger_enable == true ? 1 : 0)
-            + "&stagger_offset=" + stagger_offset);
+		capture_config = {
+			'stagger_enable': $("[name='stagger-enable-checkbox']").bootstrapSwitch('state'),
+			'render_loop': parseInt($('#render-loop-select').val()),
+			'stagger_offset': parseInt($('#stagger-offset-input').val())
+		}
+
+		$.ajax({
+			type: 'PUT',
+			url: adapter_path,
+			data: JSON.stringify({ 'capture_config': capture_config }),
+			contentType: 'application/json',
+			dataType: 'json',
+		});
+	}
+
+	function do_capture()
+	{
+		$.ajax({
+			type: 'PUT',
+			url: adapter_path + 'command',
+			data: JSON.stringify({ 'capture': true }),
+			contentType: 'application/json',
+			dataType: 'json',
+		})
+		.always(function() {
+			// $('#captureButton').button('reset');
+			setTimeout(reset_capture_button, 500);
+		});
+	}
+
+	function reset_capture_button()
+	{
+		$('#captureButton').button('reset');
 	}
 }
 
@@ -85,54 +112,77 @@ function config_camera_pane()
 
 	function update_camera_config()
 	{
-	    $.getJSON('/camera_config', function(response)
+	    $.getJSON(adapter_path + 'camera_config', function(response)
 	    {
+			var camera_config = response.camera_config;
 	        $(function() {
 	            $('#config-resolution-select option').filter(function() {
-	                return ($(this).text() == response.resolution);
+	                return ($(this).text() == camera_config.resolution);
 	            }).prop('selected', true);
 	        });
 	        $(function() {
 	            $('#config-iso-select option').filter(function() {
-	                return ($(this).text() == response.iso);
+	                return ($(this).text() == camera_config.iso);
 	            }).prop('selected', true);
 	        });
 	        $(function() {
 	            $('#config-shutter-select option').filter(function() {
-	                return ($(this).text() == response.shutter_speed);
+	                return ($(this).text() == camera_config.shutter_speed);
 	            }).prop('selected', true);
 	        });
 	    });
 	}
 
 	$('#config-resolution-select').change(function() {
-	    post_camera_config_change(false); //"resolution", $(this).val());
+	    set_camera_config(); //"resolution", $(this).val());
 	});
 
 	$('#config-iso-select').change(function() {
-	    post_camera_config_change(false); //"iso", $(this).val());
+	    set_camera_config(); //"iso", $(this).val());
 	});
 
 	$('#config-shutter-select').change(function() {
-	    post_camera_config_change(false); //"shutter_speed", $(this).val());
+	    set_camera_config(); //"shutter_speed", $(this).val());
 	});
 
-	$('#camera-config-button').click(function() {
-	    post_camera_config_change(true);
-	});
+	 $('#camera-config-button').click(do_camera_configure);
 
-
-	function post_camera_config_change(do_config)
+	function set_camera_config()
 	{
-	    resolution = $('#config-resolution-select').val();
-	    iso = $('#config-iso-select').val();
-	    shutter_speed = $('#config-shutter-select').val();
-	    
-	    configure = (do_config == true) ? '1' : '0';
-	    
-	    $.post("/camera_config?resolution=" + resolution + "&iso=" + iso + "&shutter_speed=" + shutter_speed + "&configure=" + configure, function(data) {
+		camera_config = {
+			'resolution': $('#config-resolution-select').val(),
+			'iso': $('#config-iso-select').val(),
+			'shutter_speed': $('#config-shutter-select').val(),
+		};
 
-	    });
+		$.ajax({
+			type: 'PUT',
+			url: adapter_path,
+			data: JSON.stringify({'camera_config': camera_config }),
+			contentType: 'application/json',
+			dataType: 'json',
+		});
+
+	    // resolution = $('#config-resolution-select').val();
+	    // iso = $('#config-iso-select').val();
+	    // shutter_speed = $('#config-shutter-select').val();
+
+	    // configure = (do_config == true) ? '1' : '0';
+
+	    // $.post("/camera_config?resolution=" + resolution + "&iso=" + iso + "&shutter_speed=" + shutter_speed + "&configure=" + configure, function(data) {
+
+	    // });
+	}
+
+	function do_camera_configure()
+	{
+		$.ajax({
+			type: 'PUT',
+			url: adapter_path + 'command',
+			data: JSON.stringify({'configure': true}),
+			contentType: 'application/json',
+			dataType: 'json',
+		})
 	}
 }
 
@@ -186,7 +236,7 @@ function config_system_pane()
 
 	function set_camera_enable()
 	{
-	    var enable_var = { 'camera_enable' : camera_enable};
+	    var enable_var = { 'enable' : camera_enable};
 	    $.ajax({
 	        type: 'PUT',
 	        url: adapter_path + 'camera_state',
@@ -227,53 +277,6 @@ function config_system_pane()
 		}
 		set_camera_enable();
 	});
-
-	poll_camera_state();
-
-	function poll_camera_state()
-	{
-	    $.getJSON(adapter_path + "camera_state", function(response)
-		{
-			var state = response.camera_state;
-	        var loop_len = (state.camera_state.length > max_cameras) ? max_cameras : state.camera_state.length;
-	        for (var icam = 0; icam < loop_len; icam++)
-	        {
-	            var btn_id = '#camera-state-'+(icam+1);
-	            if (state.camera_state[icam] == 1) {
-	                $(btn_id).removeClass('btn-danger').addClass('btn-success');
-	            } else {
-	                $(btn_id).removeClass('btn-success').addClass('btn-danger');
-	            }
-	            if (state.camera_enable[icam] == 1) {
-	                 $(btn_id).addClass('active');
-	             } else {
-	                 $(btn_id).removeClass('active');
-	             }
-	        }
-	        camera_enable = state.camera_enable;
-	        camera_state = state.camera_state;
-
-	        $('#system-state').html(state.system_status);
-	        if (state.system_state == 0) {
-	            $('#system-state').removeClass('label-success').addClass('label-danger');
-	        }
-	        else {
-	            $('#system-state').removeClass('label-danger').addClass('label-success');
-	        }
-	        $('#capture-state').html(state.capture_status);
-
-	        $('#configure-state').html(state.configure_status);
-	        if (state.configure_state == 0) {
-	            $('#configure-state').removeClass('label-success').addClass('label-danger');
-	        }
-	        else {
-	            $('#configure-state').removeClass('label-danger').addClass('label-success');
-	        }
-
-	        $('#last-render-file').html(state.last_render_file);
-	    });
-	    setTimeout(poll_camera_state, 1000);
-	}
 
 }
 
@@ -355,14 +358,13 @@ function config_version_modal()
 {
 
 	$('#version-info-link').click(function() {
-	    $.post('/camera_version', function(data) {
-	        // Do nothing
-	    });
+		do_command('version');
 	});
 
 	$('#version-modal').on('shown.bs.modal', function (e) {
 
-	    $('#version-modal-content tbody').html('');
+		camera_version_body =  $('#camera-version tbody')
+		camera_version_body.html('');
 
 	    for (var icam = 0; icam < max_cameras/2; icam++)
 	    {
@@ -373,28 +375,28 @@ function config_version_modal()
 	            '<td><b>' + (icam+25) + '</b></td>'+
 	            '<td id="camera-commit-' + (icam+25) +'"> &nbsp; </td>'+
 	            '<td id="camera-time-'   + (icam+25) +'"> &nbsp; </td>'+
-	          '</tr>').appendTo('#version-modal-content tbody');
+	          '</tr>').appendTo(camera_version_body);
 	    }
 	    update_camera_version_info();
 	});
 
 	$('#version-modal-refresh').click(function() {
-	    $.post('/camera_version', function(data)
-	    {
-	        setTimeout(update_camera_version_info, 1000);
-	    });
+		do_command('version');
+		setTimeout(update_camera_version_info, 1000);
 	});
 
 	function update_camera_version_info()
 	{
-	    $.getJSON('/camera_version', function(response)
+	    $.getJSON(adapter_path + 'version_info', function(response)
 	    {
-	        var loop_len = response.camera_version_time.length;
+			version_info = response.version_info;
+	        var loop_len = version_info.camera.time.length;
 	        for (var icam = 0; icam < loop_len; icam++)
 	        {
-	            $('#camera-commit-'+(icam+1)).html(response.camera_version_commit[icam]);
-	            $('#camera-time-'+(icam+1)).html(date_from_unix_time(response.camera_version_time[icam]));
+	            $('#camera-commit-'+(icam+1)).html(version_info.camera.commit[icam]);
+	            $('#camera-time-'+(icam+1)).html(date_from_unix_time(version_info.camera.time[icam]));
 	        }
+			$('#server-version').html(version_info.server);
 	    });
 	}
 
@@ -419,4 +421,72 @@ function resize_panels(){
     var h2 = Math.max($("#system").height(), $("#preview").height())
     $("#system").height(h2);
     $("#preview").height(h2);
+}
+
+function update_state()
+{
+	$.getJSON(adapter_path + "camera_state", function(response)
+	{
+
+		camera_enable = response.camera_state.enable;
+		camera_state = response.camera_state.state;
+
+		var loop_len = (camera_state.length > max_cameras) ? max_cameras : camera_state.length;
+
+		for (var icam = 0; icam < loop_len; icam++)
+		{
+			var btn_id = '#camera-state-'+(icam+1);
+			if (camera_state[icam] == 1) {
+				$(btn_id).removeClass('btn-danger').addClass('btn-success');
+			} else {
+				$(btn_id).removeClass('btn-success').addClass('btn-danger');
+			}
+			if (camera_state[icam] == 1) {
+				 $(btn_id).addClass('active');
+			 } else {
+				 $(btn_id).removeClass('active');
+			 }
+		}
+	});
+
+	$.getJSON(adapter_path + "system_state", function(response)
+	{
+		var system_state = response.system_state;
+
+		$('#system-state').html(system_state.status);
+		if (system_state.state == 0) {
+			$('#system-state').removeClass('label-success').addClass('label-danger');
+		}
+		else {
+			$('#system-state').removeClass('label-danger').addClass('label-success');
+		}
+
+		$('#capture-state').html(system_state.capture_status);
+
+		$('#configure-state').html(system_state.configure_status);
+		if (system_state.configure_state == 0) {
+			$('#configure-state').removeClass('label-success').addClass('label-danger');
+		}
+		else {
+			$('#configure-state').removeClass('label-danger').addClass('label-success');
+		}
+
+		$('#last-render-file').html(system_state.last_render_file);
+	});
+
+	setTimeout(update_state, 1000);
+}
+
+function do_command(command, always=function(){})
+{
+    data = {}
+    data[command] = true;
+
+    $.ajax({
+        type: 'PUT',
+        url: adapter_path + 'command',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+    }).always(always);
 }

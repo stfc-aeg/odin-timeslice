@@ -9,10 +9,10 @@
     <title>Timeslice Video Previewer</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="../js/bootstrap/css/bootstrap-4.2.1.min.css" rel="stylesheet">
+    <link href="/js/bootstrap/css/bootstrap-4.2.1.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="../css/video-previewer.css" rel="stylesheet" type="text/css">
+    <link href="/css/video-previewer.css" rel="stylesheet" type="text/css">
   </head>
 
   <body>
@@ -30,19 +30,19 @@
                 <div class="row">
                     <div class="col-md-12">
                         <!-- Displays the image that is being served to the '/preview' URL-->
-                        <img id="preview-image" class="resize padded loadlater" src="/preview" data-src="/preview">
+                        <img id="preview-image" class="resize padded loadlater" src="/api/0.1/timeslice/preview" data-src="/api/0.1/timeslice/preview">
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="../js/jquery-2.1.4/jquery.min.js"></script>
-    <script src="../js/bootstrap/js/bootstrap-4.2.1.min.js"></script>
-    <script src="../js/video_previewer.js" type="text/javascript"></script>
+    <script src="/js/jquery-2.1.4/jquery.min.js"></script>
+    <script src="/js/bootstrap/js/bootstrap-4.2.1.min.js"></script>
+    <script src="/js/video_previewer.js" type="text/javascript"></script>
   </body>
 </html>
